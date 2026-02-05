@@ -6,7 +6,7 @@ import Model
 import OpportunitiesManager
 from datetime import datetime
 import hashlib
-import database_local as db_utils
+import database as db_utils
 
 # Configuración inicial de la interfaz de usuario
 st.set_page_config(layout="wide", page_title="Sistema Control Audio Iprevencion")
@@ -388,21 +388,37 @@ else:
 
 # SECCIÓN DEBUG
 st.divider()
-with st.expander("🔧 DEBUG - Estado de almacenamiento"):
-    st.info("📁 Usando almacenamiento LOCAL (JSON)")
+with st.expander("🔧 DEBUG - Estado de Supabase"):
+    st.info("📊 Conectado a Supabase - Almacenamiento en la nube")
     
-    recordings = db_utils.load_recordings()
-    opportunities = db_utils.load_opportunities()
-    
-    st.success(f"✅ Grabaciones guardadas: {len(recordings)}")
-    st.success(f"✅ Oportunidades guardadas: {len(opportunities)}")
-    
-    if recordings:
-        st.write("**Últimas 3 grabaciones:**")
-        for rec in recordings[-3:]:
-            st.write(f"- {rec['filename']} ({rec['created_at']})")
-    
-    if opportunities:
-        st.write("**Últimas 3 oportunidades:**")
-        for opp in opportunities[-3:]:
-            st.write(f"- {opp['title']} ({opp['created_at']})")
+    try:
+        # Intentar conectar
+        db = db_utils.init_supabase()
+        
+        if db:
+            st.success("✅ Conexión exitosa a Supabase")
+            
+            try:
+                # Contar grabaciones
+                recordings_data = db.table("recordings").select("*").execute()
+                rec_count = len(recordings_data.data) if recordings_data.data else 0
+                st.success(f"✅ Grabaciones guardadas: {rec_count}")
+                
+                if recordings_data.data:
+                    st.write("**Últimas 5 grabaciones:**")
+                    for rec in recordings_data.data[-5:]:
+                        st.write(f"- {rec['filename']} ({rec['created_at'][:10]})")
+            except Exception as e:
+                st.warning(f"⚠️ Error leyendo grabaciones: {e}")
+            
+            try:
+                # Contar oportunidades
+                opp_data = db.table("opportunities").select("*").execute()
+                opp_count = len(opp_data.data) if opp_data.data else 0
+                st.success(f"✅ Oportunidades guardadas: {opp_count}")
+            except Exception as e:
+                st.warning(f"⚠️ Error leyendo oportunidades: {e}")
+        else:
+            st.error("❌ No se pudo conectar a Supabase - Verifica los secrets")
+    except Exception as e:
+        st.error(f"❌ Error: {e}")
