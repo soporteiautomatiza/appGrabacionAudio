@@ -6,6 +6,7 @@ import Model
 import OpportunitiesManager
 from datetime import datetime
 import hashlib
+import database as db_utils
 
 # Configuración inicial de la interfaz de usuario
 st.set_page_config(layout="wide", page_title="Sistema Control Audio Iprevencion")
@@ -98,6 +99,11 @@ with col1:
             filename = f"recording_{timestamp}.wav"
             filepath = recorder.save_recording(audio_bytes, filename)
             
+            # Guardar en Supabase también
+            recording_id = db_utils.save_recording_to_db(filename, filepath)
+            if recording_id:
+                st.session_state.last_recording_id = recording_id
+            
             # Actualizar lista sin hacer rerun
             st.session_state.recordings = recorder.get_recordings_list()
             
@@ -122,6 +128,11 @@ with col1:
         audio_bytes = uploaded_file.read()
         filename = uploaded_file.name
         filepath = recorder.save_recording(audio_bytes, filename)
+        
+        # Guardar en Supabase también
+        recording_id = db_utils.save_recording_to_db(filename, filepath)
+        if recording_id:
+            st.session_state.last_recording_id = recording_id
         
         # Actualizar lista sin hacer rerun
         st.session_state.recordings = recorder.get_recordings_list()
