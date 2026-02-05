@@ -1,0 +1,7 @@
+[client]
+showDeploymentInfo = false
+showErrorDetails = true
+
+[logger]
+level = "info"
+
