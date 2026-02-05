@@ -1,0 +1,67 @@
+# Docker Compose para toda la aplicación (Backend + Frontend + PostgreSQL)
+version: '3.8'
+
+services:
+  # Base de Datos PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    container_name: iprevencion_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: iprevencion
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend FastAPI
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: iprevencion_api
+    environment:
+      ENVIRONMENT: development
+      DEBUG: "true"
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/iprevencion
+      SECRET_KEY: dev-secret-key-change-in-production-min-32-chars
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      UPLOAD_DIR: /app/uploads
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - uploads_data:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  # Frontend Streamlit
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: iprevencion_ui
+    environment:
+      API_BASE_URL: http://backend:8000
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./frontend:/app
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  uploads_data:
+
+networks:
+  default:
+    name: iprevencion_network

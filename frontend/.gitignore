@@ -1,0 +1,15 @@
+# Git ignore para frontend
+__pycache__/
+*.py[cod]
+*$py.class
+.venv
+venv/
+ENV/
+env/
+.env
+.env.local
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.log
