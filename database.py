@@ -122,13 +122,15 @@ def delete_recording_from_db(recording_id: int):
             st.error("No se pudo conectar a Supabase")
             return False
         
-        # Primero eliminar las oportunidades asociadas
-        delete_opportunities_by_recording(recording_id)
+        # Primero eliminar las oportunidades asociadas (por seguridad)
+        try:
+            delete_opportunities_by_recording(recording_id)
+        except:
+            pass  # Si no hay oportunidades, ignorar
         
         # Luego eliminar la grabación
         response = db.table("recordings").delete().eq("id", recording_id).execute()
         
-        st.success(f"✅ Grabación eliminada de Supabase")
         return True
     except Exception as e:
         st.error(f"❌ Error eliminando grabación: {str(e)}")
@@ -141,11 +143,16 @@ def delete_opportunities_by_recording(recording_id: int):
         if db is None:
             return False
         
-        response = db.table("opportunities").delete().eq("recording_id", recording_id).execute()
+        # Primero obtener los IDs de las oportunidades
+        response = db.table("opportunities").select("id").eq("recording_id", recording_id).execute()
+        
+        if response.data and len(response.data) > 0:
+            # Eliminar cada oportunidad
+            for opp in response.data:
+                db.table("opportunities").delete().eq("id", opp["id"]).execute()
         
         return True
     except Exception as e:
-        st.error(f"Error eliminando oportunidades: {str(e)}")
         return False
 
 def delete_recording_by_filename(filename: str):
@@ -157,13 +164,20 @@ def delete_recording_by_filename(filename: str):
             return False
         
         # Buscar el recording_id por filename
-        response = db.table("recordings").select("id").eq("filename", filename).execute()
-        
-        if response.data and len(response.data) > 0:
-            recording_id = response.data[0]["id"]
-            return delete_recording_from_db(recording_id)
-        else:
-            # Si no existe en BD, retornar True (ya está eliminado o nunca se guardó)
+        try:
+            response = db.table("recordings").select("id").eq("filename", filename).execute()
+            
+            if response.data and len(response.data) > 0:
+                recording_id = response.data[0]["id"]
+                result = delete_recording_from_db(recording_id)
+                if result:
+                    st.success(f"✅ Grabación eliminada de Supabase")
+                return result
+            else:
+                # No existe en BD (ya fue eliminado o nunca se guardó)
+                return True
+        except Exception as e:
+            # Si no existe, retornar True (no es error)
             return True
     except Exception as e:
         st.error(f"Error eliminando grabación: {str(e)}")

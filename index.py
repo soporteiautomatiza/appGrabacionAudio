@@ -71,6 +71,14 @@ if "last_audio_hash" not in st.session_state:
     st.session_state.last_audio_hash = None
 if "recordings" not in st.session_state:
     st.session_state.recordings = recorder.get_recordings_list()
+if "is_processing_audio" not in st.session_state:
+    st.session_state.is_processing_audio = False
+if "last_upload_hash" not in st.session_state:
+    st.session_state.last_upload_hash = None
+if "is_deleting" not in st.session_state:
+    st.session_state.is_deleting = False
+if "audio_hashes" not in st.session_state:
+    st.session_state.audio_hashes = set()  # Track processed audio hashes
 
 st.title("Sistema Control Audio Iprevencion")
 
@@ -86,67 +94,73 @@ with col1:
     
     audio_data = st.audio_input("Presiona el botón para grabar:")
     
-    if audio_data is not None:
-        # Crear hash del audio para detectar si es nuevo
+    # Procesar audio grabado SOLO UNA VEZ
+    if audio_data is not None and not st.session_state.is_processing_audio:
         audio_bytes = audio_data.getvalue()
         audio_hash = hashlib.md5(audio_bytes).hexdigest()
         
-        # Solo guardar si es un audio nuevo (diferente hash)
-        if audio_hash != st.session_state.last_audio_hash:
-            st.session_state.last_audio_hash = audio_hash
+        # Verificar: ¿Es un audio que ya procesamos?
+        if audio_hash not in st.session_state.audio_hashes and len(audio_bytes) > 0:
+            st.session_state.is_processing_audio = True
             
-            # Guardar el audio grabado
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"recording_{timestamp}.wav"
-            filepath = recorder.save_recording(audio_bytes, filename)
-            
-            # Guardar en Supabase también
-            recording_id = db_utils.save_recording_to_db(filename, filepath)
-            if recording_id:
-                st.session_state.last_recording_id = recording_id
-            
-            # Actualizar lista sin hacer rerun
-            st.session_state.recordings = recorder.get_recordings_list()
-            
-            # Efecto visual moderno
-            col_msg = st.columns([1, 2, 1])[1]
-            with col_msg:
-                st.markdown(f"""
-                <div class="success-pulse">
-                    Audio '{filename}' grabado exitosamente
-                </div>
-                """, unsafe_allow_html=True)
-            st.toast("Grabación guardada", icon="✨")
+            try:
+                # Guardar el audio grabado
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                filename = f"recording_{timestamp}.wav"
+                filepath = recorder.save_recording(audio_bytes, filename)
+                
+                # Guardar en Supabase
+                recording_id = db_utils.save_recording_to_db(filename, filepath)
+                
+                # Marcar este audio como procesado
+                st.session_state.audio_hashes.add(audio_hash)
+                
+                # Actualizar lista
+                st.session_state.recordings = recorder.get_recordings_list()
+                
+                st.success(f"✅ Audio '{filename}' grabado y guardado")
+                st.session_state.is_processing_audio = False
+                st.rerun()
+                
+            except Exception as e:
+                st.error(f"❌ Error al grabar: {str(e)}")
+                st.session_state.is_processing_audio = False
     
     st.divider()
     
     # Opción de subir archivo
     st.markdown('<span class="badge badge-upload">SUBIR</span>', unsafe_allow_html=True)
     st.header("Sube un archivo de audio")
-    uploaded_file = st.file_uploader("Selecciona un archivo de audio", type=["mp3", "wav", "m4a", "ogg", "flac", "webm"])
+    uploaded_file = st.file_uploader("Selecciona un archivo de audio", type=["mp3", "wav", "m4a", "ogg", "flac", "webm"], key="audio_uploader")
     
-    if uploaded_file is not None:
+    if uploaded_file is not None and not st.session_state.is_processing_audio:
         audio_bytes = uploaded_file.read()
-        filename = uploaded_file.name
-        filepath = recorder.save_recording(audio_bytes, filename)
+        audio_hash = hashlib.md5(audio_bytes).hexdigest()
         
-        # Guardar en Supabase también
-        recording_id = db_utils.save_recording_to_db(filename, filepath)
-        if recording_id:
-            st.session_state.last_recording_id = recording_id
-        
-        # Actualizar lista sin hacer rerun
-        st.session_state.recordings = recorder.get_recordings_list()
-        
-        # Efecto visual moderno
-        col_msg = st.columns([1, 2, 1])[1]
-        with col_msg:
-            st.markdown(f"""
-            <div class="success-pulse">
-                Archivo '{filename}' cargado exitosamente
-            </div>
-            """, unsafe_allow_html=True)
-        st.toast("Archivo cargado", icon="✨")
+        # Verificar: ¿Es un archivo que ya procesamos?
+        if audio_hash not in st.session_state.audio_hashes and len(audio_bytes) > 0:
+            st.session_state.is_processing_audio = True
+            
+            try:
+                filename = uploaded_file.name
+                filepath = recorder.save_recording(audio_bytes, filename)
+                
+                # Guardar en Supabase
+                recording_id = db_utils.save_recording_to_db(filename, filepath)
+                
+                # Marcar este archivo como procesado
+                st.session_state.audio_hashes.add(audio_hash)
+                
+                # Actualizar lista
+                st.session_state.recordings = recorder.get_recordings_list()
+                
+                st.success(f"✅ Archivo '{filename}' cargado y guardado")
+                st.session_state.is_processing_audio = False
+                st.rerun()
+                
+            except Exception as e:
+                st.error(f"❌ Error al cargar: {str(e)}")
+                st.session_state.is_processing_audio = False
 
 with col2:
     st.markdown('<span class="badge badge-saved">AUDIOS</span>', unsafe_allow_html=True)
@@ -192,15 +206,26 @@ with col2:
                                 st.error(f"Error al transcribir: {e}")
                 
                 with col_delete:
-                    if st.button("Eliminar"):
-                        # Eliminar de Supabase
-                        db_utils.delete_recording_by_filename(selected_audio)
-                        # Eliminar localmente
-                        recorder.delete_recording(selected_audio)
-                        st.session_state.recordings = recorder.get_recordings_list()
-                        st.session_state.chat_enabled = False
-                        st.success("Audio eliminado")
-                        st.rerun()  # Actualizar inmediatamente
+                    if st.button("Eliminar", key=f"delete_{selected_audio}"):
+                        if not st.session_state.is_deleting:
+                            st.session_state.is_deleting = True
+                            
+                            try:
+                                # Eliminar de Supabase
+                                db_utils.delete_recording_by_filename(selected_audio)
+                                # Eliminar localmente
+                                recorder.delete_recording(selected_audio)
+                                # Eliminar del hash set para permitir re-agregar si es necesario
+                                st.session_state.audio_hashes.clear()
+                                
+                                st.session_state.recordings = recorder.get_recordings_list()
+                                st.session_state.chat_enabled = False
+                                st.success("✅ Audio eliminado correctamente")
+                                st.session_state.is_deleting = False
+                                st.rerun()
+                            except Exception as e:
+                                st.error(f"❌ Error al eliminar: {str(e)}")
+                                st.session_state.is_deleting = False
         
         with tab2:
             st.subheader("Eliminar múltiples audios")
@@ -221,22 +246,32 @@ with col2:
                 
                 col_confirm, col_cancel = st.columns(2)
                 with col_confirm:
-                    if st.button("Eliminar seleccionados", type="primary", use_container_width=True):
-                        deleted_count = 0
-                        for audio in audios_to_delete:
+                    if st.button("Eliminar seleccionados", type="primary", use_container_width=True, key="delete_batch"):
+                        if not st.session_state.is_deleting:
+                            st.session_state.is_deleting = True
+                            deleted_count = 0
+                            
                             try:
-                                # Eliminar de Supabase
-                                db_utils.delete_recording_by_filename(audio)
-                                # Eliminar localmente
-                                recorder.delete_recording(audio)
-                                deleted_count += 1
+                                for audio in audios_to_delete:
+                                    try:
+                                        # Eliminar de Supabase
+                                        db_utils.delete_recording_by_filename(audio)
+                                        # Eliminar localmente
+                                        recorder.delete_recording(audio)
+                                        deleted_count += 1
+                                    except Exception as e:
+                                        st.error(f"Error al eliminar {audio}: {e}")
+                                
+                                # Limpiar hashes para permitir re-agregar
+                                st.session_state.audio_hashes.clear()
+                                st.session_state.recordings = recorder.get_recordings_list()
+                                st.session_state.chat_enabled = False
+                                st.success(f"✅ {deleted_count} audio(s) eliminado(s) exitosamente")
+                                st.session_state.is_deleting = False
+                                st.rerun()  # Actualizar inmediatamente
                             except Exception as e:
-                                st.error(f"Error al eliminar {audio}: {e}")
-                        
-                        st.session_state.recordings = recorder.get_recordings_list()
-                        st.session_state.chat_enabled = False
-                        st.success(f"{deleted_count} audio(s) eliminado(s)")
-                        st.rerun()  # Actualizar inmediatamente
+                                st.error(f"Error en eliminación: {str(e)}")
+                                st.session_state.is_deleting = False
                 
                 with col_cancel:
                     st.write("")
