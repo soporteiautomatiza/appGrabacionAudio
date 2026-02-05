@@ -193,6 +193,9 @@ with col2:
                 
                 with col_delete:
                     if st.button("Eliminar"):
+                        # Eliminar de Supabase
+                        db_utils.delete_recording_by_filename(selected_audio)
+                        # Eliminar localmente
                         recorder.delete_recording(selected_audio)
                         st.session_state.recordings = recorder.get_recordings_list()
                         st.session_state.chat_enabled = False
@@ -221,6 +224,9 @@ with col2:
                         deleted_count = 0
                         for audio in audios_to_delete:
                             try:
+                                # Eliminar de Supabase
+                                db_utils.delete_recording_by_filename(audio)
+                                # Eliminar localmente
                                 recorder.delete_recording(audio)
                                 deleted_count += 1
                             except Exception as e:

@@ -114,3 +114,57 @@ def get_opportunities_by_recording(recording_id: str):
     except Exception as e:
         st.error(f"Error obteniendo oportunidades: {e}")
         return []
+def delete_recording_from_db(recording_id: int):
+    """Elimina una grabación de la base de datos"""
+    try:
+        db = init_supabase()
+        if db is None:
+            st.error("No se pudo conectar a Supabase")
+            return False
+        
+        # Primero eliminar las oportunidades asociadas
+        delete_opportunities_by_recording(recording_id)
+        
+        # Luego eliminar la grabación
+        response = db.table("recordings").delete().eq("id", recording_id).execute()
+        
+        st.success(f"✅ Grabación eliminada de Supabase")
+        return True
+    except Exception as e:
+        st.error(f"❌ Error eliminando grabación: {str(e)}")
+        return False
+
+def delete_opportunities_by_recording(recording_id: int):
+    """Elimina todas las oportunidades asociadas a una grabación"""
+    try:
+        db = init_supabase()
+        if db is None:
+            return False
+        
+        response = db.table("opportunities").delete().eq("recording_id", recording_id).execute()
+        
+        return True
+    except Exception as e:
+        st.error(f"Error eliminando oportunidades: {str(e)}")
+        return False
+
+def delete_recording_by_filename(filename: str):
+    """Busca y elimina una grabación por nombre de archivo"""
+    try:
+        db = init_supabase()
+        if db is None:
+            st.error("No se pudo conectar a Supabase")
+            return False
+        
+        # Buscar el recording_id por filename
+        response = db.table("recordings").select("id").eq("filename", filename).execute()
+        
+        if response.data and len(response.data) > 0:
+            recording_id = response.data[0]["id"]
+            return delete_recording_from_db(recording_id)
+        else:
+            # Si no existe en BD, retornar True (ya está eliminado o nunca se guardó)
+            return True
+    except Exception as e:
+        st.error(f"Error eliminando grabación: {str(e)}")
+        return False
