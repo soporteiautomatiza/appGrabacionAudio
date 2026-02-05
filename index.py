@@ -8,9 +8,9 @@ from datetime import datetime
 import hashlib
 
 # Configuración inicial de la interfaz de usuario
-st.set_page_config(layout="wide", page_title="AudioToTextoIA")
+st.set_page_config(layout="wide", page_title="Sistema Control Audio Iprevencion")
 
-# CSS para efecto de iluminación
+# CSS para estilos
 st.markdown("""
 <style>
 @keyframes pulse-glow {
@@ -33,6 +33,28 @@ st.markdown("""
     border-left: 4px solid #4CAF50;
     font-weight: 500;
 }
+
+.badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 6px;
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+    margin-right: 8px;
+}
+
+.badge-recording {
+    background: linear-gradient(135deg, #FF6B6B, #FF5252);
+}
+
+.badge-upload {
+    background: linear-gradient(135deg, #4ECDC4, #44A08D);
+}
+
+.badge-saved {
+    background: linear-gradient(135deg, #95E77D, #4CAF50);
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -48,16 +70,16 @@ if "last_audio_hash" not in st.session_state:
 if "recordings" not in st.session_state:
     st.session_state.recordings = recorder.get_recordings_list()
 
-st.title("🎙️ AudioToTextoIA")
+st.title("Sistema Control Audio Iprevencion")
 
 # Crear dos columnas principales para la carga
 col1, col2 = st.columns([1, 1])
 
 with col1:
-    st.header("📝 Carga tu audio")
+    st.markdown('<span class="badge badge-recording">GRABAR</span>', unsafe_allow_html=True)
     
     # GRABADORA DE AUDIO EN VIVO (nativa de Streamlit)
-    st.subheader("🎙️ Grabadora en vivo")
+    st.subheader("Grabadora en vivo")
     st.caption("Graba directamente desde tu micrófono (sin interrupciones)")
     
     audio_data = st.audio_input("Presiona el botón para grabar:")
@@ -84,15 +106,16 @@ with col1:
             with col_msg:
                 st.markdown(f"""
                 <div class="success-pulse">
-                    ✨ Audio '{filename}' grabado exitosamente
+                    Audio '{filename}' grabado exitosamente
                 </div>
                 """, unsafe_allow_html=True)
-            st.toast("🎙️ Grabación guardada", icon="✨")
+            st.toast("Grabación guardada", icon="✨")
     
     st.divider()
     
     # Opción de subir archivo
-    st.subheader("📤 Sube un archivo de audio")
+    st.markdown('<span class="badge badge-upload">SUBIR</span>', unsafe_allow_html=True)
+    st.header("Sube un archivo de audio")
     uploaded_file = st.file_uploader("Selecciona un archivo de audio", type=["mp3", "wav", "m4a", "ogg", "flac", "webm"])
     
     if uploaded_file is not None:
@@ -108,21 +131,22 @@ with col1:
         with col_msg:
             st.markdown(f"""
             <div class="success-pulse">
-                ✨ Archivo '{filename}' cargado exitosamente
+                Archivo '{filename}' cargado exitosamente
             </div>
             """, unsafe_allow_html=True)
-        st.toast("📁 Archivo cargado", icon="✨")
+        st.toast("Archivo cargado", icon="✨")
 
 with col2:
-    st.header("📂 Audios Guardados")
+    st.markdown('<span class="badge badge-saved">AUDIOS</span>', unsafe_allow_html=True)
+    st.header("Audios Guardados")
     
     recordings = st.session_state.recordings
     
     if recordings:
-        st.success(f"📊 Total: {len(recordings)} audio(s)")
+        st.info(f"Total: {len(recordings)} audio(s)")
         
         # Tabs para diferentes vistas
-        tab1, tab2 = st.tabs(["📝 Transcribir", "🗑️ Gestión en lote"])
+        tab1, tab2 = st.tabs(["Transcribir", "Gestión en lote"])
         
         with tab1:
             selected_audio = st.selectbox(
@@ -135,14 +159,14 @@ with col2:
                 col_play, col_transcribe, col_delete = st.columns([1, 1, 1])
                 
                 with col_play:
-                    if st.button("▶️ Reproducir"):
+                    if st.button("Reproducir"):
                         audio_path = recorder.get_recording_path(selected_audio)
                         extension = selected_audio.split('.')[-1]
                         with open(audio_path, "rb") as f:
                             st.audio(f.read(), format=f"audio/{extension}")
                 
                 with col_transcribe:
-                    if st.button("🎯 Transcribir"):
+                    if st.button("Transcribir"):
                         with st.spinner("Transcribiendo..."):
                             try:
                                 audio_path = recorder.get_recording_path(selected_audio)
@@ -151,20 +175,20 @@ with col2:
                                 st.session_state.selected_audio = selected_audio
                                 st.session_state.chat_enabled = True
                                 st.session_state.keywords = {}
-                                st.success("✅ Transcripción completada")
+                                st.success("Transcripción completada")
                             except Exception as e:
                                 st.error(f"Error al transcribir: {e}")
                 
                 with col_delete:
-                    if st.button("🗑️ Eliminar"):
+                    if st.button("Eliminar"):
                         recorder.delete_recording(selected_audio)
                         st.session_state.recordings = recorder.get_recordings_list()
                         st.session_state.chat_enabled = False
-                        st.success("✅ Audio eliminado")
+                        st.success("Audio eliminado")
         
         with tab2:
-            st.subheader("🗑️ Eliminar múltiples audios")
-            st.write("Selecciona uno o varios audios para eliminarlos rápidamente")
+            st.subheader("Eliminar múltiples audios")
+            st.write("Selecciona uno o varios audios para eliminarlos")
             
             audios_to_delete = st.multiselect(
                 "Audios a eliminar:",
@@ -173,7 +197,7 @@ with col2:
             )
             
             if audios_to_delete:
-                st.warning(f"⚠️ Vas a eliminar {len(audios_to_delete)} audio(s)")
+                st.warning(f"Vas a eliminar {len(audios_to_delete)} audio(s)")
                 
                 st.write("**Audios seleccionados:**")
                 for audio in audios_to_delete:
@@ -181,7 +205,7 @@ with col2:
                 
                 col_confirm, col_cancel = st.columns(2)
                 with col_confirm:
-                    if st.button("🔥 Eliminar seleccionados", type="primary", use_container_width=True):
+                    if st.button("Eliminar seleccionados", type="primary", use_container_width=True):
                         deleted_count = 0
                         for audio in audios_to_delete:
                             try:
@@ -192,18 +216,18 @@ with col2:
                         
                         st.session_state.recordings = recorder.get_recordings_list()
                         st.session_state.chat_enabled = False
-                        st.success(f"✅ {deleted_count} audio(s) eliminado(s)")
+                        st.success(f"{deleted_count} audio(s) eliminado(s)")
                 
                 with col_cancel:
                     st.write("")
     else:
-        st.info("📭 No hay audios guardados. Sube un archivo.")
+        st.info("No hay audios guardados. Sube un archivo.")
 
-# SECCIÓN DE TRANSCRIPCIÓN (Div grande arriba del chat)
+# SECCIÓN DE TRANSCRIPCIÓN
 st.divider()
 
 if st.session_state.get("chat_enabled", False) and st.session_state.get("contexto"):
-    st.header("📋 Transcripción del Audio")
+    st.header("Transcripción del Audio")
     st.caption(f"De: {st.session_state.get('selected_audio', 'audio')}")
     
     # Mostrar transcripción en un contenedor
@@ -211,8 +235,8 @@ if st.session_state.get("chat_enabled", False) and st.session_state.get("context
         st.text_area("", st.session_state.contexto, height=200, disabled=True, label_visibility="collapsed")
     
     # SECCIÓN DE PALABRAS CLAVE
-    st.subheader("🏷️ Palabras Clave Contextualizadas")
-    st.caption("Añade palabras clave con descripción para que la IA las entienda mejor")
+    st.subheader("Palabras Clave Contextualizadas")
+    st.caption("Añade palabras clave para que la IA las entienda mejor")
     
     col_kw1, col_kw2, col_kw3 = st.columns([1.5, 1.5, 1])
     with col_kw1:
