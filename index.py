@@ -207,25 +207,19 @@ with col2:
                 
                 with col_delete:
                     if st.button("Eliminar", key=f"delete_{selected_audio}"):
-                        if not st.session_state.is_deleting:
-                            st.session_state.is_deleting = True
+                        try:
+                            # Eliminar de Supabase
+                            db_utils.delete_recording_by_filename(selected_audio)
+                            # Eliminar localmente
+                            recorder.delete_recording(selected_audio)
+                            # Limpiar processed_audios para permitir re-agregar si es necesario
+                            st.session_state.processed_audios.clear()
                             
-                            try:
-                                # Eliminar de Supabase
-                                db_utils.delete_recording_by_filename(selected_audio)
-                                # Eliminar localmente
-                                recorder.delete_recording(selected_audio)
-                                # Eliminar del hash set para permitir re-agregar si es necesario
-                                st.session_state.audio_hashes.clear()
-                                
-                                st.session_state.recordings = recorder.get_recordings_list()
-                                st.session_state.chat_enabled = False
-                                st.success("✅ Audio eliminado correctamente")
-                                st.session_state.is_deleting = False
-                                st.rerun()
-                            except Exception as e:
-                                st.error(f"❌ Error al eliminar: {str(e)}")
-                                st.session_state.is_deleting = False
+                            st.session_state.recordings = recorder.get_recordings_list()
+                            st.session_state.chat_enabled = False
+                            st.success("✅ Audio eliminado correctamente")
+                        except Exception as e:
+                            st.error(f"❌ Error al eliminar: {str(e)}")
         
         with tab2:
             st.subheader("Eliminar múltiples audios")
@@ -247,31 +241,26 @@ with col2:
                 col_confirm, col_cancel = st.columns(2)
                 with col_confirm:
                     if st.button("Eliminar seleccionados", type="primary", use_container_width=True, key="delete_batch"):
-                        if not st.session_state.is_deleting:
-                            st.session_state.is_deleting = True
-                            deleted_count = 0
+                        deleted_count = 0
+                        
+                        try:
+                            for audio in audios_to_delete:
+                                try:
+                                    # Eliminar de Supabase
+                                    db_utils.delete_recording_by_filename(audio)
+                                    # Eliminar localmente
+                                    recorder.delete_recording(audio)
+                                    deleted_count += 1
+                                except Exception as e:
+                                    st.error(f"Error al eliminar {audio}: {e}")
                             
-                            try:
-                                for audio in audios_to_delete:
-                                    try:
-                                        # Eliminar de Supabase
-                                        db_utils.delete_recording_by_filename(audio)
-                                        # Eliminar localmente
-                                        recorder.delete_recording(audio)
-                                        deleted_count += 1
-                                    except Exception as e:
-                                        st.error(f"Error al eliminar {audio}: {e}")
-                                
-                                # Limpiar hashes para permitir re-agregar
-                                st.session_state.audio_hashes.clear()
-                                st.session_state.recordings = recorder.get_recordings_list()
-                                st.session_state.chat_enabled = False
-                                st.success(f"✅ {deleted_count} audio(s) eliminado(s) exitosamente")
-                                st.session_state.is_deleting = False
-                                st.rerun()  # Actualizar inmediatamente
-                            except Exception as e:
-                                st.error(f"Error en eliminación: {str(e)}")
-                                st.session_state.is_deleting = False
+                            # Limpiar processed_audios para permitir re-agregar
+                            st.session_state.processed_audios.clear()
+                            st.session_state.recordings = recorder.get_recordings_list()
+                            st.session_state.chat_enabled = False
+                            st.success(f"✅ {deleted_count} audio(s) eliminado(s) exitosamente")
+                        except Exception as e:
+                            st.error(f"Error en eliminación: {str(e)}")
                 
                 with col_cancel:
                     st.write("")
