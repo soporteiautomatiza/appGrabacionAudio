@@ -3,6 +3,7 @@ import os
 import AudioRecorder
 import Transcriber
 import Model
+# Force redeploy with updated credentials - 2026-02-05
 import OpportunitiesManager
 from datetime import datetime
 import hashlib
