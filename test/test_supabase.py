@@ -164,4 +164,3 @@ st.info("""
 - Probablemente RLS está activado
 - Desactívalo en ambas tablas
 """)
-
