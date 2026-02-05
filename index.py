@@ -200,6 +200,7 @@ with col2:
                         st.session_state.recordings = recorder.get_recordings_list()
                         st.session_state.chat_enabled = False
                         st.success("Audio eliminado")
+                        st.rerun()  # Actualizar inmediatamente
         
         with tab2:
             st.subheader("Eliminar múltiples audios")
@@ -235,6 +236,7 @@ with col2:
                         st.session_state.recordings = recorder.get_recordings_list()
                         st.session_state.chat_enabled = False
                         st.success(f"{deleted_count} audio(s) eliminado(s)")
+                        st.rerun()  # Actualizar inmediatamente
                 
                 with col_cancel:
                     st.write("")
