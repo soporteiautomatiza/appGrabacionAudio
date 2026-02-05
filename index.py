@@ -4,15 +4,49 @@ import AudioRecorder
 import Transcriber
 import Model
 import OpportunitiesManager
+from datetime import datetime
+import hashlib
 
 # Configuración inicial de la interfaz de usuario
 st.set_page_config(layout="wide", page_title="AudioToTextoIA")
+
+# CSS para efecto de iluminación
+st.markdown("""
+<style>
+@keyframes pulse-glow {
+    0% { 
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+    }
+    70% { 
+        box-shadow: 0 0 0 20px rgba(76, 175, 80, 0);
+    }
+    100% { 
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+    }
+}
+
+.success-pulse {
+    animation: pulse-glow 1.5s infinite;
+    padding: 12px 16px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(76, 175, 80, 0.05) 100%);
+    border-left: 4px solid #4CAF50;
+    font-weight: 500;
+}
+</style>
+""", unsafe_allow_html=True)
 
 # Inicializar objetos
 recorder = AudioRecorder.AudioRecorder()
 transcriber_model = Transcriber.Transcriber()
 chat_model = Model.Model()
 opp_manager = OpportunitiesManager.OpportunitiesManager()
+
+# Inicializar estado de sesión
+if "last_audio_hash" not in st.session_state:
+    st.session_state.last_audio_hash = None
+if "recordings" not in st.session_state:
+    st.session_state.recordings = recorder.get_recordings_list()
 
 st.title("🎙️ AudioToTextoIA")
 
@@ -22,26 +56,60 @@ col1, col2 = st.columns([1, 1])
 with col1:
     st.header("📝 Carga tu audio")
     
+    # GRABADORA DE AUDIO EN VIVO (nativa de Streamlit)
+    st.subheader("🎙️ Grabadora en vivo")
+    st.caption("Graba directamente desde tu micrófono (sin interrupciones)")
+    
+    audio_data = st.audio_input("Presiona el botón para grabar:")
+    
+    if audio_data is not None:
+        # Crear hash del audio para detectar si es nuevo
+        audio_bytes = audio_data.getvalue()
+        audio_hash = hashlib.md5(audio_bytes).hexdigest()
+        
+        # Solo guardar si es un audio nuevo (diferente hash)
+        if audio_hash != st.session_state.last_audio_hash:
+            st.session_state.last_audio_hash = audio_hash
+            
+            # Guardar el audio grabado
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"recording_{timestamp}.wav"
+            filepath = recorder.save_recording(audio_bytes, filename)
+            
+            # Actualizar lista sin hacer rerun
+            st.session_state.recordings = recorder.get_recordings_list()
+            
+            # Efecto visual moderno
+            col_msg = st.columns([1, 2, 1])[1]
+            with col_msg:
+                st.markdown(f"""
+                <div class="success-pulse">
+                    ✨ Audio '{filename}' grabado exitosamente
+                </div>
+                """, unsafe_allow_html=True)
+            st.toast("🎙️ Grabación guardada", icon="✨")
+    
+    st.divider()
+    
     # Opción de subir archivo
-    st.subheader("Sube un archivo de audio")
+    st.subheader("📤 Sube un archivo de audio")
     uploaded_file = st.file_uploader("Selecciona un archivo de audio", type=["mp3", "wav", "m4a", "ogg", "flac", "webm"])
     
     if uploaded_file is not None:
         audio_bytes = uploaded_file.read()
         filename = uploaded_file.name
         filepath = recorder.save_recording(audio_bytes, filename)
+        
+        # Actualizar lista sin hacer rerun
+        st.session_state.recordings = recorder.get_recordings_list()
+        
         st.success(f"✅ Archivo guardado: {filename}")
-        st.session_state.update_list = True
-        st.rerun()
+        st.toast("📁 Archivo cargado exitosamente", icon="✨")
 
 with col2:
     st.header("📂 Audios Guardados")
     
-    # Forzar actualización de la lista
-    if st.session_state.get("update_list", False):
-        st.session_state.update_list = False
-    
-    recordings = recorder.get_recordings_list()
+    recordings = st.session_state.recordings
     
     if recordings:
         st.success(f"📊 Total: {len(recordings)} audio(s)")
@@ -83,8 +151,9 @@ with col2:
                 with col_delete:
                     if st.button("🗑️ Eliminar"):
                         recorder.delete_recording(selected_audio)
+                        st.session_state.recordings = recorder.get_recordings_list()
                         st.session_state.chat_enabled = False
-                        st.rerun()
+                        st.success("✅ Audio eliminado")
         
         with tab2:
             st.subheader("🗑️ Eliminar múltiples audios")
@@ -114,9 +183,9 @@ with col2:
                             except Exception as e:
                                 st.error(f"Error al eliminar {audio}: {e}")
                         
-                        st.success(f"✅ {deleted_count} audio(s) eliminado(s)")
+                        st.session_state.recordings = recorder.get_recordings_list()
                         st.session_state.chat_enabled = False
-                        st.rerun()
+                        st.success(f"✅ {deleted_count} audio(s) eliminado(s)")
                 
                 with col_cancel:
                     st.write("")
