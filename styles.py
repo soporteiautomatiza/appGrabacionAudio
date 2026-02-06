@@ -306,6 +306,28 @@ def get_styles():
     .avatar-spin {
         animation: avatar-spin 3s linear infinite;
     }
+
+    /* Estilos para Tickets de Oportunidades */
+    .ticket-header {
+        color: #ef4444;
+        font-weight: 600;
+    }
+
+    .ticket-label {
+        color: #9ca3af;
+        font-size: 13px;
+        font-weight: 500;
+        margin-top: 12px;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .ticket-button {
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
     </style>
     """
 

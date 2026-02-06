@@ -319,11 +319,11 @@ if st.session_state.get("chat_enabled", False):
             if opp.get('occurrence', 1) > 1:
                 occurrence_text = f" (Ocurrencia #{opp['occurrence']})"
             
-            with st.expander(f"📌 {opp['keyword']}{occurrence_text} - {opp['created_at']}", expanded=False):
+            with st.expander(f"📌 <span class='ticket-header'>{opp['keyword']}</span>{occurrence_text} - {opp['created_at']}", expanded=False):
                 col_opp1, col_opp2 = st.columns([2, 1])
                 
                 with col_opp1:
-                    st.write("**Contexto encontrado en el audio:**")
+                    st.markdown("<div class='ticket-label'>Contexto encontrado en el audio</div>", unsafe_allow_html=True)
                     st.markdown(f"""
                     <div class="notification-container notification-info">
                         {opp['full_context']}
@@ -331,28 +331,29 @@ if st.session_state.get("chat_enabled", False):
                     """, unsafe_allow_html=True)
                     
                     new_notes = st.text_area(
-                        "Notas y resumen:",
+                        "Notas y resumen",
                         value=opp.get('notes', ''),
                         placeholder="Escribe el resumen de esta oportunidad de negocio...",
                         height=100,
-                        key=f"notes_{idx}"
+                        key=f"notes_{idx}",
+                        label_visibility="visible"
                     )
                 
                 with col_opp2:
-                    st.write("**Estado:**")
+                    st.markdown("<div class='ticket-label'>Estado</div>", unsafe_allow_html=True)
                     status_options = ["new", "in_progress", "closed", "won"]
                     new_status = st.selectbox(
-                        "Cambiar estado",
+                        "Estado",
                         status_options,
                         index=status_options.index(opp.get('status', 'new')),
                         key=f"status_{idx}",
                         label_visibility="collapsed"
                     )
                     
-                    st.write("**Prioridad:**")
+                    st.markdown("<div class='ticket-label' style='margin-top: 16px;'>Prioridad</div>", unsafe_allow_html=True)
                     priority_options = ["Low", "Medium", "High"]
                     new_priority = st.selectbox(
-                        "Cambiar prioridad",
+                        "Prioridad",
                         priority_options,
                         index=priority_options.index(opp.get('priority', 'Medium')),
                         key=f"priority_{idx}",
@@ -361,23 +362,23 @@ if st.session_state.get("chat_enabled", False):
                 
                 col_save, col_delete = st.columns(2)
                 with col_save:
-                    if st.button("💾 Guardar cambios", key=f"save_{idx}", use_container_width=True):
+                    if st.button("Guardar cambios", key=f"save_{idx}", use_container_width=True):
                         opp['notes'] = new_notes
                         opp['status'] = new_status
                         opp['priority'] = new_priority
                         if opp_manager.update_opportunity(opp, selected_audio):
-                            show_success("Cambios guardados en Supabase")
+                            show_success("Cambios guardados")
                             st.rerun()
                         else:
-                            show_error("Error al guardar los cambios")
+                            show_error("Error al guardar")
                 
                 with col_delete:
-                    if st.button("🗑️ Eliminar", key=f"delete_{idx}", use_container_width=True):
+                    if st.button("Eliminar", key=f"delete_{idx}", use_container_width=True):
                         if opp_manager.delete_opportunity(opp['id'], selected_audio):
-                            show_success("Oportunidad eliminada de Supabase")
+                            show_success("Oportunidad eliminada")
                             st.rerun()
                         else:
-                            show_error("Error al eliminar la oportunidad")
+                            show_error("Error al eliminar")
 
 # SECCIÓN DE CHAT
 
