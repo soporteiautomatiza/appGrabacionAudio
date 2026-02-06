@@ -433,18 +433,11 @@ with st.expander("🔧 DEBUG - Estado de Supabase"):
     st.info("📊 Probando conexión a Supabase...")
     
     try:
-        url = st.secrets.get("SUPABASE_URL")
-        key = st.secrets.get("SUPABASE_KEY")
+        # Usar el cliente que ya tenemos en database.py
+        supabase = db_utils.init_supabase()
         
-        if url and key:
-            st.write(f"✅ URL encontrada: {url}")
-            st.write(f"✅ Key encontrada: {key[:30]}...")
-            
-            # Intentar conexión real
-            from supabase import create_client
-            supabase = create_client(url.strip(), key.strip())
-            
-            # Prueba de tabla
+        if supabase:
+            # Contar grabaciones
             test = supabase.table("recordings").select("*", count="exact").execute()
             record_count = len(test.data) if test.data else 0
             
@@ -455,7 +448,6 @@ with st.expander("🔧 DEBUG - Estado de Supabase"):
             st.success(f"✅ ¡Conexión establecida correctamente!")
             st.success(f"✅ Grabaciones en BD: {record_count}")
             st.success(f"✅ Oportunidades en BD: {opp_count}")
-            
         else:
             st.error("❌ Falta SUPABASE_URL o SUPABASE_KEY en Secrets")
             
