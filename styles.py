@@ -72,6 +72,24 @@ def get_styles():
         }
     }
 
+    @keyframes avatar-pulse {
+        0%, 100% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.1);
+        }
+    }
+
+    @keyframes avatar-spin {
+        0% {
+            transform: rotateY(0deg);
+        }
+        100% {
+            transform: rotateY(360deg);
+        }
+    }
+
     .success-pulse {
         animation: pulse-glow 1.5s infinite;
         padding: 12px 16px;
@@ -279,6 +297,14 @@ def get_styles():
     .chat-avatar-ai {
         background: linear-gradient(135deg, rgba(107, 114, 128, 0.2) 0%, rgba(75, 85, 99, 0.15) 100%);
         border: 1px solid rgba(107, 114, 128, 0.3);
+    }
+
+    .avatar-pulse {
+        animation: avatar-pulse 2s ease-in-out infinite;
+    }
+
+    .avatar-spin {
+        animation: avatar-spin 3s linear infinite;
     }
     </style>
     """

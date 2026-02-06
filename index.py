@@ -404,7 +404,7 @@ if st.session_state.get("chat_enabled", False):
                 user_text = message.replace("👤 **Usuario**: ", "")
                 st.markdown(f"""
                 <div class="chat-message chat-message-user">
-                    <div class="chat-avatar chat-avatar-user">👤</div>
+                    <div class="chat-avatar chat-avatar-user avatar-pulse">👤</div>
                     <div class="chat-bubble chat-bubble-user">{user_text}</div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -413,7 +413,7 @@ if st.session_state.get("chat_enabled", False):
                 ai_text = message.replace("🤖 **IA**: ", "")
                 st.markdown(f"""
                 <div class="chat-message chat-message-ai">
-                    <div class="chat-avatar chat-avatar-ai">✨</div>
+                    <div class="chat-avatar chat-avatar-ai avatar-spin">🧠</div>
                     <div class="chat-bubble chat-bubble-ai">{ai_text}</div>
                 </div>
                 """, unsafe_allow_html=True)
