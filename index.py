@@ -377,14 +377,19 @@ if st.session_state.get("chat_enabled", False):
                     if st.button("💾 Guardar cambios", key=f"save_{idx}", use_container_width=True):
                         opp['notes'] = new_notes
                         opp['status'] = new_status
-                        opp_manager.update_opportunity(opp, selected_audio)
-                        st.success("✅ Cambios guardados")
+                        if opp_manager.update_opportunity(opp, selected_audio):
+                            st.success("✅ Cambios guardados en Supabase")
+                            st.rerun()
+                        else:
+                            st.error("❌ Error al guardar los cambios")
                 
                 with col_delete:
                     if st.button("🗑️ Eliminar", key=f"delete_{idx}", use_container_width=True):
-                        opp_manager.delete_opportunity(opp['id'], selected_audio)
-                        st.success("✅ Oportunidad eliminada")
-                        st.rerun()
+                        if opp_manager.delete_opportunity(opp['id'], selected_audio):
+                            st.success("✅ Oportunidad eliminada de Supabase")
+                            st.rerun()
+                        else:
+                            st.error("❌ Error al eliminar la oportunidad")
 
 # SECCIÓN DE CHAT
 st.divider()
