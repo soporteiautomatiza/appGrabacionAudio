@@ -1,18 +1,16 @@
 import google.generativeai as genai
 import os
 from dotenv import load_dotenv
-from backend.config import Config
 
 # Carga las variables de entorno desde .env
 load_dotenv()
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+if not GEMINI_API_KEY:
+    raise ValueError("GEMINI_API_KEY no está configurada en el archivo .env")
+genai.configure(api_key=GEMINI_API_KEY)
 
 class Model:
   def __init__(self):
-    # Lee dinámicamente la API key (desde st.secrets o .env)
-    GEMINI_API_KEY = Config.get_gemini_api_key()
-    if not GEMINI_API_KEY:
-        raise ValueError("GEMINI_API_KEY no está configurada en st.secrets ni en .env")
-    genai.configure(api_key=GEMINI_API_KEY)
     self.model = genai.GenerativeModel('gemini-2.0-flash')
   
   def call_model(self, question, context, keywords=None):

@@ -18,26 +18,13 @@ class SupabaseClient:
         Usa cache de Streamlit para evitar reconexiones.
         """
         try:
-            # Lee dinámicamente las credenciales cada vez que se ejecuta
-            supabase_url = Config.get_supabase_url()
-            supabase_key = Config.get_supabase_key()
-            
-            print(f"[DEBUG] SUPABASE_URL obtenu: {supabase_url[:30] if supabase_url else 'VACIO'}...")
-            print(f"[DEBUG] SUPABASE_KEY obtenu: {supabase_key[:30] if supabase_key else 'VACIO'}...")
-            
-            if supabase_url and supabase_key:
-                client = create_client(
-                    supabase_url.strip(),
-                    supabase_key.strip()
+            if Config.SUPABASE_URL and Config.SUPABASE_KEY:
+                return create_client(
+                    Config.SUPABASE_URL.strip(),
+                    Config.SUPABASE_KEY.strip()
                 )
-                print("[DEBUG] Cliente Supabase creado exitosamente")
-                return client
-            else:
-                print("[ERROR] SUPABASE_URL o SUPABASE_KEY están vacíos")
         except Exception as e:
-            print(f"[ERROR] Conectando a Supabase: {e}")
-            import traceback
-            traceback.print_exc()
+            print(f"Error conectando a Supabase: {e}")
         
         return None
     
@@ -50,8 +37,3 @@ class SupabaseClient:
 def get_db() -> Optional[Client]:
     """Helper function para obtener el cliente de BD"""
     return SupabaseClient.get_client()
-
-
-def get_supabase_client() -> Optional[Client]:
-    """Alias para get_db() - obtiene el cliente de Supabase"""
-    return get_db()

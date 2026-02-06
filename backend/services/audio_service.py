@@ -13,39 +13,21 @@ class AudioService:
     def save_recording(self, filename: str, filepath: str) -> Optional[int]:
         """
         Guarda una grabación en la BD
-        Returns: ID del recording creado, None si falla
+        Returns: ID del recording creado
         """
         try:
-            # Validar que el repository esté conectado
-            if self.repository.db is None:
-                print("ERROR: No hay conexión a Supabase")
-                return None
-            
             recording_id = self.repository.create(filename, filepath)
-            if recording_id is None:
-                print(f"ERROR: El repository.create() retornó None para {filename}")
-            else:
-                print(f"SUCCESS: Recording guardado con ID {recording_id}")
             return recording_id
         except Exception as e:
-            print(f"ERROR en AudioService.save_recording: {type(e).__name__}: {str(e)}")
-            import traceback
-            traceback.print_exc()
+            print(f"Error en AudioService.save_recording: {e}")
             return None
     
     def get_all_recordings(self) -> List[Dict[str, Any]]:
         """Obtiene todas las grabaciones"""
         try:
-            if self.repository.db is None:
-                print("ERROR: No hay conexión a Supabase en get_all_recordings")
-                return []
-            recordings = self.repository.get_all()
-            print(f"SUCCESS: Se obtuvieron {len(recordings) if recordings else 0} grabaciones")
-            return recordings or []
+            return self.repository.get_all()
         except Exception as e:
-            print(f"ERROR en AudioService.get_all_recordings: {type(e).__name__}: {str(e)}")
-            import traceback
-            traceback.print_exc()
+            print(f"Error en AudioService.get_all_recordings: {e}")
             return []
     
     def get_recording(self, recording_id: int) -> Optional[Dict[str, Any]]:
