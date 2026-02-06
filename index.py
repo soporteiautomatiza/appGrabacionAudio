@@ -179,14 +179,15 @@ with col2:
             
             if selected_audio:
                 # Cargar transcripción existente automáticamente si existe
-                existing_transcription = db_utils.get_transcription_by_filename(selected_audio)
-                if existing_transcription:
-                    st.session_state.contexto = existing_transcription["content"]
-                    st.session_state.selected_audio = selected_audio
-                    st.session_state.chat_enabled = True
-                    st.session_state.keywords = {}
-                    st.info("✅ Transcripción cargada desde Supabase")
-                    st.rerun()
+                if selected_audio != st.session_state.get("loaded_audio"):
+                    existing_transcription = db_utils.get_transcription_by_filename(selected_audio)
+                    if existing_transcription:
+                        st.session_state.contexto = existing_transcription["content"]
+                        st.session_state.selected_audio = selected_audio
+                        st.session_state.loaded_audio = selected_audio
+                        st.session_state.chat_enabled = True
+                        st.session_state.keywords = {}
+                        st.info("✅ Transcripción cargada desde Supabase")
                 
                 col_play, col_transcribe, col_delete = st.columns([1, 1, 1])
                 
@@ -205,6 +206,7 @@ with col2:
                                 transcription = transcriber_model.transcript_audio(audio_path)
                                 st.session_state.contexto = transcription.text
                                 st.session_state.selected_audio = selected_audio
+                                st.session_state.loaded_audio = selected_audio
                                 st.session_state.chat_enabled = True
                                 st.session_state.keywords = {}
                                 
@@ -231,6 +233,7 @@ with col2:
                             
                             st.session_state.recordings = recorder.get_recordings_from_supabase()
                             st.session_state.chat_enabled = False
+                            st.session_state.loaded_audio = None
                             st.success("✅ Audio eliminado correctamente")
                             st.rerun()
                         except Exception as e:
