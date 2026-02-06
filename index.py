@@ -388,7 +388,7 @@ if st.session_state.get("chat_enabled", False):
 st.divider()
 
 if st.session_state.get("chat_enabled", False):
-    st.header("💬 Chat con IA")
+    st.header("Asistente IA para Análisis de Reuniones")
     st.caption(f"Conversando sobre: {st.session_state.get('selected_audio', 'audio')}")
     
     # Mostrar palabras clave activas
@@ -429,7 +429,7 @@ if st.session_state.get("chat_enabled", False):
     # Campo de entrada centrado
     col_left, col_input, col_right = st.columns([1, 3, 1])
     with col_input:
-        user_input = st.chat_input("Escribe tu pregunta sobre el audio:")
+        user_input = st.chat_input("Escribe tu pregunta o solicitud de análisis...")
     
     if user_input:
         st.session_state.chat_history.append(f"👤 **Usuario**: {user_input}")
