@@ -266,7 +266,7 @@ def get_styles():
     }
 
     .chat-bubble-user {
-        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        background: linear-gradient(135deg, #3B82F6 0%, #2563eb 100%);
         color: white;
         border-radius: 18px 18px 4px 18px;
     }
@@ -291,7 +291,7 @@ def get_styles():
     }
 
     .chat-avatar-user {
-        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        background: linear-gradient(135deg, #3B82F6 0%, #2563eb 100%);
     }
 
     .chat-avatar-ai {
