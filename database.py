@@ -1,15 +1,34 @@
 import streamlit as st
 import os
 from datetime import datetime
+import httpx
+from postgrest import AsyncPostgrestClient
 
-# Importar solo lo necesario de Supabase (sin storage3)
-try:
-    from supabase import create_client, Client
-except ImportError:
-    # Si falla por storage3/pyiceberg, usamos postgrest directamente
-    from postgrest import AsyncPostgrestClient
-    create_client = None
-    Client = None
+# Cliente Supabase simplificado usando postgrest directamente
+class SupabaseClient:
+    def __init__(self, url: str, key: str):
+        self.url = url
+        self.key = key
+        self.rest_url = url.rstrip('/') + '/rest/v1'
+        self.headers = {
+            'apikey': key,
+            'Authorization': f'Bearer {key}',
+            'Content-Type': 'application/json'
+        }
+        self._http_client = httpx.Client()
+    
+    def table(self, table_name: str):
+        """Retorna un cliente PostgREST para una tabla específica"""
+        return AsyncPostgrestClient(
+            self.rest_url,
+            table_name=table_name,
+            headers=self.headers,
+            http_client=self._http_client
+        )
+
+def create_client(url: str, key: str):
+    """Crea un cliente Supabase"""
+    return SupabaseClient(url, key)
 
 @st.cache_resource
 def init_supabase() -> Client:
