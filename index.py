@@ -8,12 +8,33 @@ from Model import Model
 from backend.services.audio_service import AudioService
 from backend.services.transcription_service import TranscriptionService
 from backend.services.opportunity_service import OpportunityService
+from backend.config import Config
+from backend.supabase_client import get_supabase_client
 
 # Configuración inicial de la interfaz de usuario
 st.set_page_config(layout="wide", page_title="Sistema Control Audio Iprevencion")
 
 # Cargar estilos CSS desde archivo
 st.markdown(styles.get_styles(), unsafe_allow_html=True)
+
+# ====== DEBUG: Verificar credenciales al cargar la app ======
+if not st.session_state.get("_debug_shown", False):
+    st.write("[DEBUG] Verificando configuración...")
+    print("[DEBUG] ===== VERIFICACIÓN DE CONFIGURACIÓN =====")
+    print(f"[DEBUG] SUPABASE_URL: {Config.get_supabase_url()[:30] if Config.get_supabase_url() else 'VACÍO'}...")
+    print(f"[DEBUG] SUPABASE_KEY: {Config.get_supabase_key()[:30] if Config.get_supabase_key() else 'VACÍO'}...")
+    print(f"[DEBUG] GEMINI_API_KEY: {'OK' if Config.get_gemini_api_key() else 'VACÍO'}...")
+    
+    supabase = get_supabase_client()
+    print(f"[DEBUG] Conexión Supabase: {'✓ CONECTADO' if supabase else '✗ NO CONECTADO'}")
+    
+    if supabase:
+        st.write("✓ Conexión a Supabase verificada")
+    else:
+        st.error("✗ ERROR: No hay conexión a Supabase. Verifica los secrets en Streamlit Cloud")
+    
+    st.session_state._debug_shown = True
+    print("[DEBUG] ===== FIN VERIFICACIÓN =====\n")
 
 # Inicializar servicios del backend
 audio_service = AudioService()
