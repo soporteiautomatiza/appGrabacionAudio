@@ -93,3 +93,25 @@ class OpportunityService:
         except Exception as e:
             print(f"Error en OpportunityService.extract_opportunities_from_keywords: {e}")
             return created_ids
+
+    def update_opportunity(self, opportunity_id: int, **kwargs) -> bool:
+        """
+        Actualiza una oportunidad (status, priority, notes, etc.)
+        Returns: True si fue exitoso
+        """
+        try:
+            return self.opportunity_repo.update(opportunity_id, **kwargs)
+        except Exception as e:
+            print(f"Error en OpportunityService.update_opportunity: {e}")
+            return False
+    
+    def delete_opportunity(self, opportunity_id: int) -> bool:
+        """
+        Elimina una oportunidad
+        Returns: True si fue exitoso
+        """
+        try:
+            return self.opportunity_repo.delete(opportunity_id)
+        except Exception as e:
+            print(f"Error en OpportunityService.delete_opportunity: {e}")
+            return False
