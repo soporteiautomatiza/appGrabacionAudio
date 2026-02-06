@@ -24,34 +24,38 @@ opp_manager = OpportunitiesManager.OpportunitiesManager()
 
 # Funciones auxiliares para notificaciones modernas
 def show_success(message: str):
-    """Muestra una notificación de éxito con diseño moderno"""
+    """Muestra un icono de éxito con tooltip con el mensaje"""
     st.markdown(f"""
-    <div class="notification-container notification-success">
-        ✅ {message}
+    <div class="notification-icon notification-icon-success">
+        ✓
+        <span class="notification-tooltip">{message}</span>
     </div>
     """, unsafe_allow_html=True)
 
 def show_error(message: str):
-    """Muestra una notificación de error con diseño moderno"""
+    """Muestra un icono de error con tooltip con el mensaje"""
     st.markdown(f"""
-    <div class="notification-container notification-error">
-        ❌ {message}
+    <div class="notification-icon notification-icon-error">
+        ✕
+        <span class="notification-tooltip">{message}</span>
     </div>
     """, unsafe_allow_html=True)
 
 def show_warning(message: str):
-    """Muestra una notificación de advertencia con diseño moderno"""
+    """Muestra un icono de advertencia con tooltip con el mensaje"""
     st.markdown(f"""
-    <div class="notification-container notification-warning">
-        ⚠️ {message}
+    <div class="notification-icon notification-icon-warning">
+        ⚠
+        <span class="notification-tooltip">{message}</span>
     </div>
     """, unsafe_allow_html=True)
 
 def show_info(message: str):
-    """Muestra una notificación de información con diseño moderno"""
+    """Muestra un icono de información con tooltip con el mensaje"""
     st.markdown(f"""
-    <div class="notification-container notification-info">
-        ℹ️ {message}
+    <div class="notification-icon notification-icon-info">
+        ℹ
+        <span class="notification-tooltip">{message}</span>
     </div>
     """, unsafe_allow_html=True)
 

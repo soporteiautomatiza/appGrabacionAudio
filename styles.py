@@ -29,6 +29,17 @@ def get_styles():
         }
     }
 
+    @keyframes expand {
+        from {
+            max-width: 40px;
+            padding: 8px;
+        }
+        to {
+            max-width: 500px;
+            padding: 14px 16px;
+        }
+    }
+
     .success-pulse {
         animation: pulse-glow 1.5s infinite;
         padding: 12px 16px;
@@ -60,50 +71,89 @@ def get_styles():
         background: linear-gradient(135deg, #95E77D, #4CAF50);
     }
 
-    /* Estilos modernos para notificaciones */
-    .notification-container {
-        animation: slide-in 0.3s ease-out;
-        margin: 10px 0;
+    /* Estilos para notificaciones compactas con emoticono */
+    .notification-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        font-size: 20px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin: 5px 0;
+        position: relative;
     }
 
-    .notification-success {
-        background: linear-gradient(135deg, rgba(52, 211, 153, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%);
-        border-left: 5px solid #34d399;
-        border-radius: 8px;
-        padding: 14px 16px;
-        font-weight: 500;
+    .notification-icon:hover {
+        transform: scale(1.1);
+    }
+
+    .notification-icon-success {
+        background: linear-gradient(135deg, rgba(52, 211, 153, 0.2) 0%, rgba(34, 197, 94, 0.1) 100%);
+        border: 2px solid #34d399;
         color: #10b981;
-        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.1);
     }
 
-    .notification-error {
-        background: linear-gradient(135deg, rgba(248, 113, 113, 0.1) 0%, rgba(239, 68, 68, 0.05) 100%);
-        border-left: 5px solid #f87171;
-        border-radius: 8px;
-        padding: 14px 16px;
-        font-weight: 500;
+    .notification-icon-error {
+        background: linear-gradient(135deg, rgba(248, 113, 113, 0.2) 0%, rgba(239, 68, 68, 0.1) 100%);
+        border: 2px solid #f87171;
         color: #dc2626;
-        box-shadow: 0 2px 8px rgba(220, 38, 38, 0.1);
     }
 
-    .notification-warning {
-        background: linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%);
-        border-left: 5px solid #fbbf24;
-        border-radius: 8px;
-        padding: 14px 16px;
-        font-weight: 500;
+    .notification-icon-warning {
+        background: linear-gradient(135deg, rgba(251, 191, 36, 0.2) 0%, rgba(245, 158, 11, 0.1) 100%);
+        border: 2px solid #fbbf24;
         color: #d97706;
-        box-shadow: 0 2px 8px rgba(217, 119, 6, 0.1);
     }
 
-    .notification-info {
-        background: linear-gradient(135deg, rgba(96, 165, 250, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%);
-        border-left: 5px solid #60a5fa;
-        border-radius: 8px;
-        padding: 14px 16px;
-        font-weight: 500;
+    .notification-icon-info {
+        background: linear-gradient(135deg, rgba(96, 165, 250, 0.2) 0%, rgba(59, 130, 246, 0.1) 100%);
+        border: 2px solid #60a5fa;
         color: #2563eb;
-        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1);
+    }
+
+    /* Tooltip para el mensaje */
+    .notification-tooltip {
+        visibility: hidden;
+        position: absolute;
+        z-index: 1000;
+        bottom: 125%;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: rgba(0, 0, 0, 0.9);
+        color: white;
+        text-align: center;
+        border-radius: 8px;
+        padding: 8px 12px;
+        white-space: nowrap;
+        font-size: 12px;
+        font-weight: 500;
+        opacity: 0;
+        transition: opacity 0.3s;
+        pointer-events: none;
+        max-width: 200px;
+        word-wrap: break-word;
+        white-space: normal;
+    }
+
+    .notification-icon:hover .notification-tooltip {
+        visibility: visible;
+        opacity: 1;
+    }
+
+    /* Arrow para tooltip */
+    .notification-tooltip::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        margin-left: -5px;
+        border-width: 5px;
+        border-style: solid;
+        border-color: rgba(0, 0, 0, 0.9) transparent transparent transparent;
     }
     </style>
     """
+
