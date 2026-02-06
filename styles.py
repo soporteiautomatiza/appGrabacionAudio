@@ -292,6 +292,7 @@ def get_styles():
 
     .chat-avatar-user {
         background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        color: white;
     }
 
     .chat-avatar-ai {
