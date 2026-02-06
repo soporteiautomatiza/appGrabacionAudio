@@ -9,20 +9,56 @@ from datetime import datetime
 import hashlib
 import database as db_utils
 
-# 🎨 DISEÑO MODERNO - IMPORTAR
-from modern_ui import (
-    inject_modern_css,
-    success_toast,
-    error_toast,
-    warning_toast,
-    info_toast
-)
-
 # Configuración inicial de la interfaz de usuario
-st.set_page_config(layout="wide", page_title="🎙️ AudioPro Intelligence")
+st.set_page_config(layout="wide", page_title="Sistema Control Audio Iprevencion")
 
-# ✅ INYECTAR CSS MODERNO PRIMERO (MUY IMPORTANTE)
-inject_modern_css()
+# CSS para estilos
+st.markdown("""
+<style>
+@keyframes pulse-glow {
+    0% { 
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+    }
+    70% { 
+        box-shadow: 0 0 0 20px rgba(76, 175, 80, 0);
+    }
+    100% { 
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+    }
+}
+
+.success-pulse {
+    animation: pulse-glow 1.5s infinite;
+    padding: 12px 16px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(76, 175, 80, 0.05) 100%);
+    border-left: 4px solid #4CAF50;
+    font-weight: 500;
+}
+
+.badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 6px;
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+    margin-right: 8px;
+}
+
+.badge-recording {
+    background: linear-gradient(135deg, #FF6B6B, #FF5252);
+}
+
+.badge-upload {
+    background: linear-gradient(135deg, #4ECDC4, #44A08D);
+}
+
+.badge-saved {
+    background: linear-gradient(135deg, #95E77D, #4CAF50);
+}
+</style>
+""", unsafe_allow_html=True)
 
 # Inicializar objetos
 recorder = AudioRecorder.AudioRecorder()
@@ -44,20 +80,7 @@ if "upload_key_counter" not in st.session_state:
 if "record_key_counter" not in st.session_state:
     st.session_state.record_key_counter = 0
 
-# ============================================================================
-# ENCABEZADO CON ESTILO MODERNO
-# ============================================================================
-
-st.markdown("""
-<div style="text-align: center; margin: 2rem 0; padding: 2rem;">
-    <h1 style="font-size: 3rem; margin: 0;">🎙️ AudioPro</h1>
-    <p style="color: #B0B8C1; font-size: 1.1rem; margin-top: 0.5rem;">
-        Plataforma de IA para Transcripción y Análisis de Audios
-    </p>
-</div>
-""", unsafe_allow_html=True)
-
-st.divider()
+st.title("Sistema Control Audio Iprevencion")
 
 # Crear dos columnas principales para la carga
 col1, col2 = st.columns([1, 1])
