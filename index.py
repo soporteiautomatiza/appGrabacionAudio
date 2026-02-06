@@ -59,6 +59,30 @@ def show_info(message: str):
     </div>
     """, unsafe_allow_html=True)
 
+def show_success_expanded(message: str):
+    """Muestra un mensaje de éxito visible completo (para debug)"""
+    st.markdown(f"""
+    <div class="notification-expanded notification-expanded-success">
+        ✓ {message}
+    </div>
+    """, unsafe_allow_html=True)
+
+def show_error_expanded(message: str):
+    """Muestra un mensaje de error visible completo (para debug)"""
+    st.markdown(f"""
+    <div class="notification-expanded notification-expanded-error">
+        ✕ {message}
+    </div>
+    """, unsafe_allow_html=True)
+
+def show_info_expanded(message: str):
+    """Muestra un mensaje de información visible completo (para debug)"""
+    st.markdown(f"""
+    <div class="notification-expanded notification-expanded-info">
+        ℹ {message}
+    </div>
+    """, unsafe_allow_html=True)
+
 # Inicializar estado de sesión
 if "processed_audios" not in st.session_state:
     st.session_state.processed_audios = set()  # Audios ya procesados
@@ -459,7 +483,7 @@ else:
 # SECCIÓN DEBUG
 st.divider()
 with st.expander("🔧 DEBUG - Estado de Supabase"):
-    show_info("Probando conexión a Supabase...")
+    show_info_expanded("Probando conexión a Supabase...")
     
     try:
         # Usar el cliente que ya tenemos en database.py
@@ -478,16 +502,16 @@ with st.expander("🔧 DEBUG - Estado de Supabase"):
             test_trans = supabase.table("transcriptions").select("*", count="exact").execute()
             trans_count = len(test_trans.data) if test_trans.data else 0
             
-            show_success("¡Conexión establecida correctamente!")
-            show_success(f"Grabaciones en BD: {record_count}")
-            show_success(f"Oportunidades en BD: {opp_count}")
-            show_success(f"Transcripciones en BD: {trans_count}")
+            show_success_expanded("¡Conexión establecida correctamente!")
+            show_success_expanded(f"Grabaciones en BD: {record_count}")
+            show_success_expanded(f"Oportunidades en BD: {opp_count}")
+            show_success_expanded(f"Transcripciones en BD: {trans_count}")
         else:
-            show_error("Falta SUPABASE_URL o SUPABASE_KEY en Secrets")
+            show_error_expanded("Falta SUPABASE_URL o SUPABASE_KEY en Secrets")
             
     except Exception as e:
-        show_error(f"Error de conexión: {str(e)}")
-        show_info("Posibles soluciones:")
+        show_error_expanded(f"Error de conexión: {str(e)}")
+        show_info_expanded("Posibles soluciones:")
         st.write("1. Verifica que RLS esté DESHABILITADO en ambas tablas")
         st.write("2. Haz click en 'Reboot app' en el menú (3 puntos arriba)")
         st.write("3. Verifica que no haya espacios en blanco en los Secrets")

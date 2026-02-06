@@ -154,6 +154,34 @@ def get_styles():
         border-style: solid;
         border-color: rgba(0, 0, 0, 0.9) transparent transparent transparent;
     }
+
+    /* Estilos para notificaciones expandidas (para debug) */
+    .notification-expanded {
+        animation: slide-in 0.3s ease-out;
+        margin: 10px 0;
+        border-radius: 8px;
+        padding: 14px 16px;
+        font-weight: 500;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .notification-expanded-success {
+        background: linear-gradient(135deg, rgba(52, 211, 153, 0.15) 0%, rgba(34, 197, 94, 0.08) 100%);
+        border-left: 5px solid #34d399;
+        color: #10b981;
+    }
+
+    .notification-expanded-error {
+        background: linear-gradient(135deg, rgba(248, 113, 113, 0.15) 0%, rgba(239, 68, 68, 0.08) 100%);
+        border-left: 5px solid #f87171;
+        color: #dc2626;
+    }
+
+    .notification-expanded-info {
+        background: linear-gradient(135deg, rgba(96, 165, 250, 0.15) 0%, rgba(59, 130, 246, 0.08) 100%);
+        border-left: 5px solid #60a5fa;
+        color: #2563eb;
+    }
     </style>
     """
 
