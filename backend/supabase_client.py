@@ -37,3 +37,8 @@ class SupabaseClient:
 def get_db() -> Optional[Client]:
     """Helper function para obtener el cliente de BD"""
     return SupabaseClient.get_client()
+
+
+def get_supabase_client() -> Optional[Client]:
+    """Alias para get_db() - obtiene el cliente de Supabase"""
+    return get_db()
