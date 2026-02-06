@@ -404,7 +404,7 @@ if st.session_state.get("chat_enabled", False):
                 user_text = message.replace("👤 **Usuario**: ", "")
                 st.markdown(f"""
                 <div class="chat-message chat-message-user">
-                    <div class="chat-avatar chat-avatar-user avatar-pulse">🧑</div>
+                    <div class="chat-avatar chat-avatar-user avatar-pulse">�</div>
                     <div class="chat-bubble chat-bubble-user">{user_text}</div>
                 </div>
                 """, unsafe_allow_html=True)

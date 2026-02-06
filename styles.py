@@ -301,6 +301,7 @@ def get_styles():
 
     .avatar-pulse {
         animation: avatar-pulse 2s ease-in-out infinite;
+        filter: brightness(0) invert(1);
     }
 
     .avatar-spin {
