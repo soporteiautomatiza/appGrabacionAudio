@@ -9,22 +9,56 @@ from datetime import datetime
 import hashlib
 import database as db_utils
 
-# 🎨 DISEÑO MODERNO - IMPORTAR
-from modern_ui import (
-    inject_modern_css,
-    section_header,
-    stat_card,
-    opportunity_card_modern,
-    badge,
-    audio_player_modern,
-    create_metric_row
-)
-
 # Configuración inicial de la interfaz de usuario
-st.set_page_config(layout="wide", page_title="🎙️ AudioPro Intelligence")
+st.set_page_config(layout="wide", page_title="Sistema Control Audio Iprevencion")
 
-# ✅ INYECTAR CSS MODERNO PRIMERO (MUY IMPORTANTE)
-inject_modern_css()
+# CSS para estilos
+st.markdown("""
+<style>
+@keyframes pulse-glow {
+    0% { 
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+    }
+    70% { 
+        box-shadow: 0 0 0 20px rgba(76, 175, 80, 0);
+    }
+    100% { 
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+    }
+}
+
+.success-pulse {
+    animation: pulse-glow 1.5s infinite;
+    padding: 12px 16px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(76, 175, 80, 0.05) 100%);
+    border-left: 4px solid #4CAF50;
+    font-weight: 500;
+}
+
+.badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 6px;
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+    margin-right: 8px;
+}
+
+.badge-recording {
+    background: linear-gradient(135deg, #FF6B6B, #FF5252);
+}
+
+.badge-upload {
+    background: linear-gradient(135deg, #4ECDC4, #44A08D);
+}
+
+.badge-saved {
+    background: linear-gradient(135deg, #95E77D, #4CAF50);
+}
+</style>
+""", unsafe_allow_html=True)
 
 # Inicializar objetos
 recorder = AudioRecorder.AudioRecorder()
@@ -46,32 +80,15 @@ if "upload_key_counter" not in st.session_state:
 if "record_key_counter" not in st.session_state:
     st.session_state.record_key_counter = 0
 
-# ============================================================================
-# ENCABEZADO CON ESTILO MODERNO
-# ============================================================================
+st.title("Sistema Control Audio Iprevencion")
 
-st.markdown("""
-<div style="text-align: center; margin: 2rem 0; padding: 2rem;">
-    <h1 style="font-size: 3rem; margin: 0;">🎙️ AudioPro</h1>
-    <p style="color: #B0B8C1; font-size: 1.1rem; margin-top: 0.5rem;">
-        Plataforma de IA para Transcripción y Análisis de Audios
-    </p>
-</div>
-""", unsafe_allow_html=True)
-
-st.divider()
-
-# ============================================================================
-# SECCIÓN 1: GRABACIÓN Y CARGA DE AUDIOS
-# ============================================================================
-
-section_header("🎵 Grabación & Carga de Audios", "Sube o graba nuevos audios para analizar")
-
+# Crear dos columnas principales para la carga
 col1, col2 = st.columns([1, 1])
 
 with col1:
-    st.markdown("**📻 Opción 1: Grabar desde Micrófono**")
-    st.caption("Graba directamente desde tu micrófono")
+    # GRABADORA DE AUDIO EN VIVO (nativa de Streamlit)
+    st.markdown('<h3 style="color: white;">Grabadora en vivo</h3>', unsafe_allow_html=True)
+    st.caption("Graba directamente desde tu micrófono (sin interrupciones)")
     
     audio_data = st.audio_input("Presiona el botón para grabar:", key=f"audio_recorder_{st.session_state.record_key_counter}")
     
@@ -105,16 +122,12 @@ with col1:
                     
                 except Exception as e:
                     st.error(f"❌ Error al grabar: {str(e)}")
-
-with col2:
-    st.markdown("**📤 Opción 2: Cargar Archivo**")
-    st.caption("Sube un archivo de audio existente")
     
-    uploaded_file = st.file_uploader(
-        "Selecciona un archivo de audio",
-        type=["mp3", "wav", "m4a", "ogg", "flac", "webm"],
-        key=f"audio_uploader_{st.session_state.upload_key_counter}"
-    )
+    st.divider()
+    
+    # Opción de subir archivo
+    st.markdown('<h3 style="color: white;">Sube un archivo de audio</h3>', unsafe_allow_html=True)
+    uploaded_file = st.file_uploader("Selecciona un archivo de audio", type=["mp3", "wav", "m4a", "ogg", "flac", "webm"], key=f"audio_uploader_{st.session_state.upload_key_counter}")
     
     if uploaded_file is not None:
         audio_bytes = uploaded_file.read()
@@ -144,205 +157,181 @@ with col2:
                 except Exception as e:
                     st.error(f"❌ Error al cargar: {str(e)}")
 
-st.divider()
-
-# ============================================================================
-# SECCIÓN 2: LISTADO DE AUDIOS CON ESTADÍSTICAS
-# ============================================================================
-
-section_header("📂 Audios Disponibles", "Selecciona un audio para analizar")
-
-recordings = recorder.get_recordings_from_supabase()
-st.session_state.recordings = recordings
-
-if recordings:
-    # Métricas superiores
-    all_opportunities = []
-    try:
-        for rec in recordings:
-            opps = opp_manager.load_opportunities(rec)
-            all_opportunities.extend(opps)
-    except:
-        pass
+with col2:
+    st.markdown('<h3 style="color: white;">Audios Guardados</h3>', unsafe_allow_html=True)
     
-    create_metric_row({
-        "Total Grabaciones": str(len(recordings)),
-        "Oportunidades": str(len(all_opportunities)),
-        "Transcripciones": str(len([r for r in recordings if r.get('transcription')]))
-    }, cols=3)
+    # Refresh de la lista de audios desde Supabase cada vez que se renderiza (para sincronizar)
+    recordings = recorder.get_recordings_from_supabase()
+    st.session_state.recordings = recordings
     
-    st.divider()
-    
-    # Tabs para diferentes vistas
-    tab1, tab2 = st.tabs(["🎙️ Transcribir", "🗑️ Gestión Batch"])
-    
-    with tab1:
-        selected_audio = st.selectbox(
-            "Selecciona un audio",
-            recordings,
-            format_func=lambda x: x.replace("_", " ").replace(".wav", "").replace(".mp3", "").replace(".m4a", "").replace(".webm", "").replace(".ogg", "").replace(".flac", "")
-        )
+    if recordings:
+        st.info(f"Total: {len(recordings)} audio(s)")
         
-        if selected_audio:
-            # Cargar transcripción existente automáticamente si existe
-            if selected_audio != st.session_state.get("loaded_audio"):
-                existing_transcription = db_utils.get_transcription_by_filename(selected_audio)
-                if existing_transcription:
-                    st.session_state.contexto = existing_transcription["content"]
-                    st.session_state.selected_audio = selected_audio
-                    st.session_state.loaded_audio = selected_audio
-                    st.session_state.chat_enabled = True
-                    st.session_state.keywords = {}
-                    st.info("✅ Transcripción cargada desde Supabase")
+        # Tabs para diferentes vistas
+        tab1, tab2 = st.tabs(["Transcribir", "Gestión en lote"])
+        
+        with tab1:
+            selected_audio = st.selectbox(
+                "Selecciona un audio para transcribir",
+                recordings,
+                format_func=lambda x: x.replace("_", " ").replace(".wav", "").replace(".mp3", "").replace(".m4a", "").replace(".webm", "").replace(".ogg", "").replace(".flac", "")
+            )
             
-            col_play, col_transcribe, col_delete = st.columns([1, 1, 1])
-            
-            with col_play:
-                if st.button("▶️ Reproducir", use_container_width=True):
-                    try:
+            if selected_audio:
+                # Cargar transcripción existente automáticamente si existe
+                if selected_audio != st.session_state.get("loaded_audio"):
+                    existing_transcription = db_utils.get_transcription_by_filename(selected_audio)
+                    if existing_transcription:
+                        st.session_state.contexto = existing_transcription["content"]
+                        st.session_state.selected_audio = selected_audio
+                        st.session_state.loaded_audio = selected_audio
+                        st.session_state.chat_enabled = True
+                        st.session_state.keywords = {}
+                        st.info("✅ Transcripción cargada desde Supabase")
+                
+                col_play, col_transcribe, col_delete = st.columns([1, 1, 1])
+                
+                with col_play:
+                    if st.button("Reproducir"):
                         audio_path = recorder.get_recording_path(selected_audio)
                         extension = selected_audio.split('.')[-1]
                         with open(audio_path, "rb") as f:
                             st.audio(f.read(), format=f"audio/{extension}")
-                    except Exception as e:
-                        st.error(f"Error al reproducir: {e}")
-            
-            with col_transcribe:
-                if st.button("🎙️ Transcribir", use_container_width=True):
-                    with st.spinner("Transcribiendo audio..."):
-                        try:
-                            audio_path = recorder.get_recording_path(selected_audio)
-                            transcription = transcriber_model.transcript_audio(audio_path)
-                            st.session_state.contexto = transcription.text
-                            st.session_state.selected_audio = selected_audio
-                            st.session_state.loaded_audio = selected_audio
-                            st.session_state.chat_enabled = True
-                            st.session_state.keywords = {}
-                            
-                            # Guardar la transcripción en Supabase
-                            transcription_id = db_utils.save_transcription(
-                                recording_filename=selected_audio,
-                                content=transcription.text,
-                                language="es"
-                            )
-                            
-                            st.success("✅ Transcripción completada y guardada")
-                        except Exception as e:
-                            st.error(f"Error al transcribir: {e}")
-            
-            with col_delete:
-                if st.button("🗑️ Eliminar", use_container_width=True):
-                    try:
-                        db_utils.delete_recording_by_filename(selected_audio)
-                        recorder.delete_recording(selected_audio)
-                        st.session_state.processed_audios.clear()
-                        st.session_state.recordings = recorder.get_recordings_from_supabase()
-                        st.session_state.chat_enabled = False
-                        st.session_state.loaded_audio = None
-                        st.success("✅ Audio eliminado correctamente")
-                        st.rerun()
-                    except Exception as e:
-                        st.error(f"❌ Error al eliminar: {str(e)}")
-    
-    with tab2:
-        st.subheader("🗑️ Eliminar Múltiples Audios")
-        st.write("Selecciona uno o varios audios para eliminarlos")
-        
-        audios_to_delete = st.multiselect(
-            "Audios a eliminar:",
-            recordings,
-            format_func=lambda x: x.replace("_", " ").replace(".wav", "").replace(".mp3", "").replace(".m4a", "").replace(".webm", "").replace(".ogg", "").replace(".flac", "")
-        )
-        
-        if audios_to_delete:
-            st.warning(f"⚠️ Vas a eliminar {len(audios_to_delete)} audio(s)")
-            
-            st.write("**Audios seleccionados:**")
-            for audio in audios_to_delete:
-                badge(audio, "info")
-            
-            col_confirm, col_cancel = st.columns(2)
-            with col_confirm:
-                if st.button("✅ Confirmar Eliminación", use_container_width=True):
-                    deleted_count = 0
-                    
-                    try:
-                        for audio in audios_to_delete:
+                
+                with col_transcribe:
+                    if st.button("Transcribir"):
+                        with st.spinner("Transcribiendo..."):
                             try:
-                                db_utils.delete_recording_by_filename(audio)
-                                recorder.delete_recording(audio)
-                                deleted_count += 1
+                                audio_path = recorder.get_recording_path(selected_audio)
+                                transcription = transcriber_model.transcript_audio(audio_path)
+                                st.session_state.contexto = transcription.text
+                                st.session_state.selected_audio = selected_audio
+                                st.session_state.loaded_audio = selected_audio
+                                st.session_state.chat_enabled = True
+                                st.session_state.keywords = {}
+                                
+                                # Guardar la transcripción en Supabase
+                                transcription_id = db_utils.save_transcription(
+                                    recording_filename=selected_audio,
+                                    content=transcription.text,
+                                    language="es"
+                                )
+                                
+                                st.success("✅ Transcripción completada y guardada en Supabase")
                             except Exception as e:
-                                st.error(f"Error al eliminar {audio}: {e}")
+                                st.error(f"Error al transcribir: {e}")
+                
+                with col_delete:
+                    if st.button("Eliminar", key=f"delete_{selected_audio}"):
+                        try:
+                            # Eliminar de Supabase
+                            db_utils.delete_recording_by_filename(selected_audio)
+                            # Eliminar localmente
+                            recorder.delete_recording(selected_audio)
+                            # Limpiar processed_audios para permitir re-agregar si es necesario
+                            st.session_state.processed_audios.clear()
+                            
+                            st.session_state.recordings = recorder.get_recordings_from_supabase()
+                            st.session_state.chat_enabled = False
+                            st.session_state.loaded_audio = None
+                            st.success("✅ Audio eliminado correctamente")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"❌ Error al eliminar: {str(e)}")
+        
+        with tab2:
+            st.subheader("Eliminar múltiples audios")
+            st.write("Selecciona uno o varios audios para eliminarlos")
+            
+            audios_to_delete = st.multiselect(
+                "Audios a eliminar:",
+                recordings,
+                format_func=lambda x: x.replace("_", " ").replace(".wav", "").replace(".mp3", "").replace(".m4a", "").replace(".webm", "").replace(".ogg", "").replace(".flac", "")
+            )
+            
+            if audios_to_delete:
+                st.warning(f"Vas a eliminar {len(audios_to_delete)} audio(s)")
+                
+                st.write("**Audios seleccionados:**")
+                for audio in audios_to_delete:
+                    st.write(f"  • {audio}")
+                
+                col_confirm, col_cancel = st.columns(2)
+                with col_confirm:
+                    if st.button("Eliminar seleccionados", type="primary", use_container_width=True, key="delete_batch"):
+                        deleted_count = 0
                         
-                        st.session_state.processed_audios.clear()
-                        st.session_state.recordings = recorder.get_recordings_from_supabase()
-                        st.session_state.chat_enabled = False
-                        st.success(f"✅ {deleted_count} audio(s) eliminado(s)")
-                        st.rerun()
-                    except Exception as e:
-                        st.error(f"Error: {str(e)}")
+                        try:
+                            for audio in audios_to_delete:
+                                try:
+                                    # Eliminar de Supabase
+                                    db_utils.delete_recording_by_filename(audio)
+                                    # Eliminar localmente
+                                    recorder.delete_recording(audio)
+                                    deleted_count += 1
+                                except Exception as e:
+                                    st.error(f"Error al eliminar {audio}: {e}")
+                            
+                            # Limpiar processed_audios para permitir re-agregar
+                            st.session_state.processed_audios.clear()
+                            st.session_state.recordings = recorder.get_recordings_from_supabase()
+                            st.session_state.chat_enabled = False
+                            st.success(f"✅ {deleted_count} audio(s) eliminado(s) exitosamente")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Error en eliminación: {str(e)}")
+                
+                with col_cancel:
+                    st.write("")
+    else:
+        st.info("No hay audios guardados. Sube un archivo.")
 
-else:
-    st.info("📭 No hay audios guardados. Carga uno para comenzar.")
-
+# SECCIÓN DE TRANSCRIPCIÓN
 st.divider()
 
-# ============================================================================
-# SECCIÓN 3: TRANSCRIPCIÓN
-# ============================================================================
-
 if st.session_state.get("chat_enabled", False) and st.session_state.get("contexto"):
-    section_header("📝 Transcripción del Audio", f"De: {st.session_state.get('selected_audio', 'audio')}")
+    st.header("Transcripción del Audio")
+    st.caption(f"De: {st.session_state.get('selected_audio', 'audio')}")
     
-    st.text_area("", st.session_state.contexto, height=180, disabled=True, label_visibility="collapsed")
+    # Mostrar transcripción en un contenedor
+    with st.container(border=True):
+        st.text_area("", st.session_state.contexto, height=200, disabled=True, label_visibility="collapsed")
     
-    st.divider()
-    
-    # ========================================================================
-    # SECCIÓN 4: PALABRAS CLAVE
-    # ========================================================================
-    
-    section_header("🔑 Palabras Clave Contextualizadas", "Define palabras clave para buscar oportunidades")
+    # SECCIÓN DE PALABRAS CLAVE
+    st.subheader("Palabras Clave Contextualizadas")
+    st.caption("Añade palabras clave para que la IA las entienda mejor")
     
     col_kw1, col_kw2, col_kw3 = st.columns([1.5, 1.5, 1])
     with col_kw1:
-        new_keyword = st.text_input(
-            "Palabra clave:",
-            placeholder="Ej: presupuesto, reunión, contrato...",
-            label_visibility="collapsed"
-        )
+        new_keyword = st.text_input("Palabra clave:", placeholder="Ej: presupuesto")
     with col_kw2:
-        keyword_context = st.text_input(
-            "Contexto/Descripción:",
-            placeholder="Ej: total de $5000",
-            label_visibility="collapsed"
-        )
+        keyword_context = st.text_input("Contexto/Descripción:", placeholder="Ej: total de $5000")
     with col_kw3:
-        st.write("")
-        if st.button("➕ Agregar Palabra", use_container_width=True):
+        if st.button("➕ Añadir", use_container_width=True):
             if new_keyword:
                 st.session_state.keywords[new_keyword] = keyword_context if keyword_context else "Sin descripción"
-                st.success(f"✅ '{new_keyword}' agregada")
+                st.success(f"✅ '{new_keyword}' añadida")
                 st.rerun()
     
     # Mostrar palabras clave
     if st.session_state.keywords:
         st.write("**📌 Palabras clave configuradas:**")
-        kw_cols = st.columns(3)
-        for idx, (keyword, context) in enumerate(st.session_state.keywords.items()):
-            with kw_cols[idx % 3]:
-                badge(keyword, "status-new")
-                st.caption(f"_{context}_")
-                
-                if st.button("✖️ Eliminar", key=f"del_{keyword}", use_container_width=True):
+        for keyword, context in st.session_state.keywords.items():
+            col_display = st.columns([0.5, 2, 2, 0.3])
+            with col_display[0]:
+                st.write("🏷️")
+            with col_display[1]:
+                st.write(f"**{keyword}**")
+            with col_display[2]:
+                st.write(f"_{context}_")
+            with col_display[3]:
+                if st.button("✖️", key=f"del_{keyword}"):
                     del st.session_state.keywords[keyword]
                     st.rerun()
         
-        st.divider()
-        
         # Botón para generar oportunidades
-        if st.button("🎯 Analizar y Generar Tickets", use_container_width=True):
+        st.divider()
+        if st.button("🎯 Analizar y Generar Tickets de Oportunidades", use_container_width=True, type="primary"):
             with st.spinner("Analizando transcripción..."):
                 keywords_list = list(st.session_state.keywords.keys())
                 opportunities = opp_manager.extract_opportunities(
@@ -356,43 +345,44 @@ if st.session_state.get("chat_enabled", False) and st.session_state.get("context
                     saved_count += 1
                 
                 if saved_count > 0:
-                    st.success(f"✅ {saved_count} ticket(s) generado(s)")
+                    st.success(f"✅ {saved_count} ticket(s) de oportunidad generado(s)")
                     st.session_state.show_opportunities = True
                     st.rerun()
                 else:
-                    st.warning("⚠️ No se encontraron oportunidades")
-    
-    st.divider()
-    
-    # ========================================================================
-    # SECCIÓN 5: OPORTUNIDADES CON TARJETAS MODERNAS
-    # ========================================================================
-    
+                    st.warning("⚠️ No se encontraron oportunidades con las palabras clave")
+
+# SECCIÓN DE OPORTUNIDADES
+st.divider()
+
+if st.session_state.get("chat_enabled", False):
     selected_audio = st.session_state.get("selected_audio", "")
     opportunities = opp_manager.load_opportunities(selected_audio)
     
     if opportunities:
-        section_header("🎯 Tickets de Oportunidades", "Gestiona las oportunidades identificadas")
+        st.header("🎟️ Tickets de Oportunidades de Negocio")
         
         for idx, opp in enumerate(opportunities):
-            # Encabezado del ticket
-            col_title, col_buttons = st.columns([3, 1])
+            # Mostrar número de ocurrencia si hay múltiples
+            occurrence_text = ""
+            if opp.get('occurrence', 1) > 1:
+                occurrence_text = f" (Ocurrencia #{opp['occurrence']})"
             
-            with col_title:
-                opportunity_card_modern(
-                    ticket_number=opp.get('ticket_number', idx + 1),
-                    title=opp.get('keyword', 'Sin título'),
-                    description=opp.get('full_context', opp.get('description', 'Sin descripción')),
-                    status=opp.get('status', 'new'),
-                    priority=opp.get('priority', 'Medium'),
-                    notes=opp.get('notes', ''),
-                    created_at=opp.get('created_at', 'N/A')
-                )
-            
-            with st.expander("✏️ Editar Detalles", expanded=False):
-                col_edit1, col_edit2 = st.columns(2)
+            with st.expander(f"📌 {opp['keyword']}{occurrence_text} - {opp['created_at']}", expanded=False):
+                col_opp1, col_opp2 = st.columns([2, 1])
                 
-                with col_edit1:
+                with col_opp1:
+                    st.write("**Contexto encontrado en el audio:**")
+                    st.info(opp['full_context'])
+                    
+                    new_notes = st.text_area(
+                        "Notas y resumen:",
+                        value=opp.get('notes', ''),
+                        placeholder="Escribe el resumen de esta oportunidad de negocio...",
+                        height=100,
+                        key=f"notes_{idx}"
+                    )
+                
+                with col_opp2:
                     st.write("**Estado:**")
                     status_options = ["new", "in_progress", "closed", "won"]
                     new_status = st.selectbox(
@@ -402,8 +392,7 @@ if st.session_state.get("chat_enabled", False) and st.session_state.get("context
                         key=f"status_{idx}",
                         label_visibility="collapsed"
                     )
-                
-                with col_edit2:
+                    
                     st.write("**Prioridad:**")
                     priority_options = ["Low", "Medium", "High"]
                     new_priority = st.selectbox(
@@ -414,47 +403,36 @@ if st.session_state.get("chat_enabled", False) and st.session_state.get("context
                         label_visibility="collapsed"
                     )
                 
-                st.write("**Notas:**")
-                new_notes = st.text_area(
-                    "Notas del ticket",
-                    value=opp.get('notes', ''),
-                    placeholder="Escribe observaciones...",
-                    height=100,
-                    key=f"notes_{idx}",
-                    label_visibility="collapsed"
-                )
-                
                 col_save, col_delete = st.columns(2)
                 with col_save:
-                    if st.button("💾 Guardar Cambios", key=f"save_{idx}", use_container_width=True):
+                    if st.button("💾 Guardar cambios", key=f"save_{idx}", use_container_width=True):
                         opp['notes'] = new_notes
                         opp['status'] = new_status
                         opp['priority'] = new_priority
                         if opp_manager.update_opportunity(opp, selected_audio):
-                            st.success("✅ Cambios guardados")
+                            st.success("✅ Cambios guardados en Supabase")
                             st.rerun()
                         else:
-                            st.error("❌ Error al guardar")
+                            st.error("❌ Error al guardar los cambios")
                 
                 with col_delete:
-                    if st.button("🗑️ Eliminar Ticket", key=f"delete_{idx}", use_container_width=True):
+                    if st.button("🗑️ Eliminar", key=f"delete_{idx}", use_container_width=True):
                         if opp_manager.delete_opportunity(opp['id'], selected_audio):
-                            st.success("✅ Eliminado")
+                            st.success("✅ Oportunidad eliminada de Supabase")
                             st.rerun()
                         else:
-                            st.error("❌ Error al eliminar")
+                            st.error("❌ Error al eliminar la oportunidad")
+
+# SECCIÓN DE CHAT
+st.divider()
+
+if st.session_state.get("chat_enabled", False):
+    st.header("💬 Chat con IA")
+    st.caption(f"Conversando sobre: {st.session_state.get('selected_audio', 'audio')}")
     
-    st.divider()
-    
-    # ========================================================================
-    # SECCIÓN 6: CHAT CON IA
-    # ========================================================================
-    
-    section_header("💬 Chat Inteligente", "Realiza preguntas sobre tu audio")
-    
+    # Mostrar palabras clave activas
     if st.session_state.get("keywords"):
-        keywords_text = ", ".join(st.session_state.keywords.keys())
-        st.info(f"🏷️ Palabras clave activas: {keywords_text}")
+        st.info(f"🏷️ Palabras clave activas: {', '.join(st.session_state.keywords.keys())}")
     
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
@@ -467,53 +445,52 @@ if st.session_state.get("chat_enabled", False) and st.session_state.get("context
     user_input = st.chat_input("Escribe tu pregunta sobre el audio:")
     
     if user_input:
-        st.session_state.chat_history.append(f"👤 **Tú**: {user_input}")
+        st.session_state.chat_history.append(f"👤 **Usuario**: {user_input}")
         
-        with st.spinner("🤖 Generando respuesta..."):
+        with st.spinner("Generando respuesta..."):
             try:
+                # Pasar palabras clave al modelo
                 keywords = st.session_state.get("keywords", {})
                 response = chat_model.call_model(user_input, st.session_state.contexto, keywords)
                 st.session_state.chat_history.append(f"🤖 **IA**: {response}")
                 st.rerun()
             except Exception as e:
-                st.error(f"Error: {e}")
-
+                st.error(f"Error al generar respuesta: {e}")
 else:
-    st.info("👆 Carga un audio, transcríbelo y agrega palabras clave para activar todas las funciones.")
+    st.info("👆 Carga un audio y transcríbelo para habilitar el chat.")
 
+# SECCIÓN DEBUG
 st.divider()
-
-# ============================================================================
-# SECCIÓN 7: DEBUG Y MONITOR
-# ============================================================================
-
-with st.expander("🔧 Monitor del Sistema", expanded=False):
-    st.info("📊 Estado de Supabase y estadísticas generales")
+with st.expander("🔧 DEBUG - Estado de Supabase"):
+    st.info("📊 Probando conexión a Supabase...")
     
     try:
+        # Usar el cliente que ya tenemos en database.py
         supabase = db_utils.init_supabase()
         
         if supabase:
+            # Contar grabaciones
             test = supabase.table("recordings").select("*", count="exact").execute()
             record_count = len(test.data) if test.data else 0
             
+            # Contar oportunidades
             test_opp = supabase.table("opportunities").select("*", count="exact").execute()
             opp_count = len(test_opp.data) if test_opp.data else 0
             
+            # Contar transcripciones
             test_trans = supabase.table("transcriptions").select("*", count="exact").execute()
             trans_count = len(test_trans.data) if test_trans.data else 0
             
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                stat_card("Grabaciones", str(record_count), "🎵", "cyan")
-            with col2:
-                stat_card("Oportunidades", str(opp_count), "📋", "purple")
-            with col3:
-                stat_card("Transcripciones", str(trans_count), "📝", "low")
-            
-            st.success("✅ Conexión a Supabase establecida")
+            st.success(f"✅ ¡Conexión establecida correctamente!")
+            st.success(f"✅ Grabaciones en BD: {record_count}")
+            st.success(f"✅ Oportunidades en BD: {opp_count}")
+            st.success(f"✅ Transcripciones en BD: {trans_count}")
         else:
-            st.error("❌ Falta configuración en Secrets")
+            st.error("❌ Falta SUPABASE_URL o SUPABASE_KEY en Secrets")
             
     except Exception as e:
         st.error(f"❌ Error de conexión: {str(e)}")
+        st.info("💡 Posibles soluciones:")
+        st.write("1. Verifica que RLS esté DESHABILITADO en ambas tablas")
+        st.write("2. Haz click en 'Reboot app' en el menú (3 puntos arriba)")
+        st.write("3. Verifica que no haya espacios en blanco en los Secrets")
