@@ -127,8 +127,11 @@ with col2:
     recordings = audio_service.get_all_recordings()
     st.session_state.recordings = recordings
     
-    if recordings:
-        show_info(f"Total: {len(recordings)} audio(s)")
+    # Extraer solo los nombres de archivo para mostrar
+    recording_filenames = [r.get('filename', '') for r in recordings if isinstance(r, dict) and r.get('filename')]
+    
+    if recording_filenames:
+        show_info(f"Total: {len(recording_filenames)} audio(s)")
         
         # Tabs para diferentes vistas
         tab1, tab2 = st.tabs(["Transcribir", "Gestión en lote"])
@@ -136,7 +139,7 @@ with col2:
         with tab1:
             selected_audio = st.selectbox(
                 "Selecciona un audio para transcribir",
-                recordings,
+                recording_filenames,
                 format_func=lambda x: x.replace("_", " ").replace(".wav", "").replace(".mp3", "").replace(".m4a", "").replace(".webm", "").replace(".ogg", "").replace(".flac", "")
             )
             
@@ -212,7 +215,7 @@ with col2:
             
             audios_to_delete = st.multiselect(
                 "Audios a eliminar:",
-                recordings,
+                recording_filenames,
                 format_func=lambda x: x.replace("_", " ").replace(".wav", "").replace(".mp3", "").replace(".m4a", "").replace(".webm", "").replace(".ogg", "").replace(".flac", "")
             )
             
