@@ -16,37 +16,42 @@ class OpportunitiesManager:
         if not keywords_list:
             return opportunities
         
-        # Dividir la transcripción en palabras FUNCIONA
+        # Dividir la transcripción en palabras
         words = transcription.lower().split()
         
         for keyword in keywords_list:
             keyword_lower = keyword.lower()
+            occurrence_count = 0
             
-            # Buscar la palabra clave en la transcripción
-            if keyword_lower in transcription.lower():
-                # Encontrar índice de la palabra
-                for i, word in enumerate(words):
-                    if keyword_lower in word:
-                        # Extraer contexto: 5 palabras antes y después
-                        start = max(0, i - 5)
-                        end = min(len(words), i + 6)
-                        
-                        context_before = " ".join(words[start:i])
-                        context_after = " ".join(words[i+1:end])
-                        
-                        opportunity = {
-                            "id": datetime.now().strftime("%Y%m%d_%H%M%S") + f"_{keyword}",
-                            "keyword": keyword,
-                            "context_before": context_before,
-                            "context_after": context_after,
-                            "full_context": f"{context_before} **{keyword}** {context_after}",
-                            "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                            "status": "new",
-                            "notes": ""
-                        }
-                        
-                        opportunities.append(opportunity)
-                        break
+            # Buscar TODAS las ocurrencias de la palabra clave
+            for i, word in enumerate(words):
+                if keyword_lower in word:
+                    occurrence_count += 1
+                    
+                    # Extraer contexto: 15 palabras antes y después (más contexto)
+                    context_window = 15
+                    start = max(0, i - context_window)
+                    end = min(len(words), i + context_window + 1)
+                    
+                    context_before = " ".join(words[start:i])
+                    context_after = " ".join(words[i+1:end])
+                    
+                    # Crear un ID único para cada ocurrencia
+                    opportunity_id = datetime.now().strftime("%Y%m%d_%H%M%S") + f"_{keyword}_{occurrence_count}"
+                    
+                    opportunity = {
+                        "id": opportunity_id,
+                        "keyword": keyword,
+                        "context_before": context_before,
+                        "context_after": context_after,
+                        "full_context": f"{context_before} **{keyword}** {context_after}",
+                        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        "status": "new",
+                        "notes": "",
+                        "occurrence": occurrence_count  # Número de la ocurrencia
+                    }
+                    
+                    opportunities.append(opportunity)
         
         return opportunities
     

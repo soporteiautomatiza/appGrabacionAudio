@@ -341,7 +341,12 @@ if st.session_state.get("chat_enabled", False):
         st.header("🎟️ Tickets de Oportunidades de Negocio")
         
         for idx, opp in enumerate(opportunities):
-            with st.expander(f"📌 {opp['keyword']} - {opp['created_at']}", expanded=False):
+            # Mostrar número de ocurrencia si hay múltiples
+            occurrence_text = ""
+            if opp.get('occurrence', 1) > 1:
+                occurrence_text = f" (Ocurrencia #{opp['occurrence']})"
+            
+            with st.expander(f"📌 {opp['keyword']}{occurrence_text} - {opp['created_at']}", expanded=False):
                 col_opp1, col_opp2 = st.columns([2, 1])
                 
                 with col_opp1:
