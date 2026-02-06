@@ -80,8 +80,6 @@ with col1:
                 except Exception as e:
                     show_error(f"Error al grabar: {str(e)}")
     
-    st.divider()
-    
     # Opción de subir archivo
     st.markdown('<h3 style="color: white;">Sube un archivo de audio</h3>', unsafe_allow_html=True)
     uploaded_file = st.file_uploader("Selecciona un archivo de audio", type=["mp3", "wav", "m4a", "ogg", "flac", "webm"], key=f"audio_uploader_{st.session_state.upload_key_counter}")
@@ -244,7 +242,6 @@ with col2:
         show_info("No hay audios guardados. Sube un archivo.")
 
 # SECCIÓN DE TRANSCRIPCIÓN
-st.divider()
 
 if st.session_state.get("chat_enabled", False) and st.session_state.get("contexto"):
     st.header("Transcripción del Audio")
@@ -287,7 +284,6 @@ if st.session_state.get("chat_enabled", False) and st.session_state.get("context
                     st.rerun()
         
         # Botón para generar oportunidades
-        st.divider()
         if st.button("🎯 Analizar y Generar Tickets de Oportunidades", use_container_width=True, type="primary"):
             with st.spinner("Analizando transcripción..."):
                 keywords_list = list(st.session_state.keywords.keys())
@@ -309,7 +305,6 @@ if st.session_state.get("chat_enabled", False) and st.session_state.get("context
                     show_warning("No se encontraron oportunidades con las palabras clave")
 
 # SECCIÓN DE OPORTUNIDADES
-st.divider()
 
 if st.session_state.get("chat_enabled", False):
     selected_audio = st.session_state.get("selected_audio", "")
@@ -385,7 +380,6 @@ if st.session_state.get("chat_enabled", False):
                             show_error("Error al eliminar la oportunidad")
 
 # SECCIÓN DE CHAT
-st.divider()
 
 if st.session_state.get("chat_enabled", False):
     st.header("Asistente IA para Análisis de Reuniones")
@@ -447,7 +441,6 @@ else:
     show_info("Carga un audio y transcríbelo para habilitar el chat.")
 
 # SECCIÓN DEBUG
-st.divider()
 with st.expander("🔧 DEBUG - Estado de Supabase"):
     show_info_expanded("Probando conexión a Supabase...")
     
