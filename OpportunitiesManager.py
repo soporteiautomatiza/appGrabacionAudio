@@ -107,6 +107,7 @@ class OpportunitiesManager:
                 "description": opportunity.get("full_context", ""),
                 "status": opportunity.get("status", "new"),
                 "priority": priority,
+                "notes": opportunity.get("notes", ""),
                 "created_at": datetime.now().isoformat()
             }
             
@@ -211,7 +212,8 @@ class OpportunitiesManager:
             update_data = {
                 "status": opportunity.get("status", "new"),
                 "priority": opportunity.get("priority", "Medium"),
-                "description": opportunity.get("full_context", "")
+                "description": opportunity.get("full_context", ""),
+                "notes": opportunity.get("notes", "")
             }
             
             # Intentar actualizar
