@@ -371,12 +371,23 @@ if st.session_state.get("chat_enabled", False):
                         key=f"status_{idx}",
                         label_visibility="collapsed"
                     )
+                    
+                    st.write("**Prioridad:**")
+                    priority_options = ["Low", "Medium", "High"]
+                    new_priority = st.selectbox(
+                        "Cambiar prioridad",
+                        priority_options,
+                        index=priority_options.index(opp.get('priority', 'Medium')),
+                        key=f"priority_{idx}",
+                        label_visibility="collapsed"
+                    )
                 
                 col_save, col_delete = st.columns(2)
                 with col_save:
                     if st.button("💾 Guardar cambios", key=f"save_{idx}", use_container_width=True):
                         opp['notes'] = new_notes
                         opp['status'] = new_status
+                        opp['priority'] = new_priority
                         if opp_manager.update_opportunity(opp, selected_audio):
                             st.success("✅ Cambios guardados en Supabase")
                             st.rerun()

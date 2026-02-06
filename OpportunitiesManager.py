@@ -70,7 +70,7 @@ class OpportunitiesManager:
                         "status": "new",
                         "notes": "",
                         "occurrence": occurrence_count,  # Número de la ocurrencia
-                        "priority": "medium",
+                        "priority": "Medium",
                         "title": keyword
                     }
                     
@@ -91,12 +91,22 @@ class OpportunitiesManager:
                 # Fallback a archivo JSON
                 return self._save_opportunity_local(opportunity, audio_filename)
             
-            # Preparar datos para Supabase - solo campos que sabemos que existen
+            # Preparar datos para Supabase - con formato correcto para la tabla
+            priority = opportunity.get("priority", "Medium")
+            # Asegurar que la prioridad tiene el formato correcto (capitalizada)
+            if priority.lower() == "low":
+                priority = "Low"
+            elif priority.lower() == "high":
+                priority = "High"
+            elif priority.lower() == "medium":
+                priority = "Medium"
+            
             data = {
                 "recording_id": recording_id,
                 "title": opportunity.get("keyword", "Oportunidad"),
                 "description": opportunity.get("full_context", ""),
                 "status": opportunity.get("status", "new"),
+                "priority": priority,
                 "created_at": datetime.now().isoformat()
             }
             
@@ -153,7 +163,7 @@ class OpportunitiesManager:
                         "full_context": record.get("description", ""),
                         "status": record.get("status", "new"),
                         "notes": record.get("notes", ""),
-                        "priority": record.get("priority", "medium"),
+                        "priority": record.get("priority", "Medium"),
                         "created_at": record.get("created_at", ""),
                         "occurrence": 1
                     }
@@ -197,9 +207,11 @@ class OpportunitiesManager:
                 # Fallback a archivo JSON si no hay ID
                 return self._update_opportunity_local(opportunity, audio_filename)
             
-            # Actualizar en Supabase - solo campos que sabemos que existen
+            # Actualizar en Supabase - campos que admite la tabla
             update_data = {
                 "status": opportunity.get("status", "new"),
+                "priority": opportunity.get("priority", "Medium"),
+                "description": opportunity.get("full_context", "")
             }
             
             # Intentar actualizar
