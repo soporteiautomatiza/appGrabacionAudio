@@ -6,7 +6,7 @@ from pathlib import Path
 # Agregar carpeta backend al path para importar módulos
 sys.path.insert(0, str(Path(__file__).parent.parent / "backend"))
 
-import AudioRecorder
+from AudioRecorder import AudioRecorder
 from Transcriber import Transcriber
 from Model import Model
 # Force redeploy with updated credentials - 2026-02-05
@@ -24,10 +24,10 @@ st.set_page_config(layout="wide", page_title="Sistema Control Audio Iprevencion"
 st.markdown(styles.get_styles(), unsafe_allow_html=True)
 
 # Inicializar objetos
-recorder = AudioRecorder.AudioRecorder()
-transcriber_model = Transcriber.Transcriber()
-chat_model = Model.Model()
-opp_manager = OpportunitiesManager.OpportunitiesManager()
+recorder = AudioRecorder()
+transcriber_model = Transcriber()
+chat_model = Model()
+opp_manager = OpportunitiesManager()
 
 # Inicializar estado de sesión
 if "processed_audios" not in st.session_state:
