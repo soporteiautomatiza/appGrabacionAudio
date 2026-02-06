@@ -248,6 +248,3 @@ class OpportunitiesManager:
             pass
         
         return False
-            pass
-        
-        return False
