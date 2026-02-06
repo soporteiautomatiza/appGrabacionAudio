@@ -5,3 +5,21 @@ showErrorDetails = true
 [logger]
 level = "info"
 
+[theme]
+primaryColor = "#FF6E40"
+backgroundColor = "#1E1E1E"
+secondaryBackgroundColor = "#262730"
+textColor = "#FFFFFF"
+font = "sans serif"
+
+[browser]
+gatherUsageStats = false
+
+[server]
+# Configuración de seguridad
+runOnSave = true
+maxUploadSize = 100
+
+# Carpeta para datos compartidos
+# serverAddress = "localhost"
+# serverPort = 8501

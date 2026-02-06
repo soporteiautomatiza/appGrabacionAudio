@@ -5,11 +5,13 @@ from pathlib import Path
 import streamlit as st
 from database import init_supabase
 
-OPPORTUNITIES_DIR = "opportunities"
+# Obtener ruta a datos desde la carpeta parent/data
+BASE_DIR = Path(__file__).parent.parent / "data"
+OPPORTUNITIES_DIR = BASE_DIR / "opportunities"
 
 class OpportunitiesManager:
     def __init__(self):
-        Path(OPPORTUNITIES_DIR).mkdir(exist_ok=True)
+        OPPORTUNITIES_DIR.mkdir(parents=True, exist_ok=True)
         self.db = None
         try:
             # Inicializar cliente Supabase
@@ -130,12 +132,12 @@ class OpportunitiesManager:
     def _save_opportunity_local(self, opportunity, audio_filename):
         """Fallback: Guarda una oportunidad en archivo JSON"""
         filename = f"opp_{audio_filename.replace('.', '_')}_{opportunity['id']}.json"
-        filepath = os.path.join(OPPORTUNITIES_DIR, filename)
+        filepath = OPPORTUNITIES_DIR / filename
         
         with open(filepath, "w", encoding="utf-8") as f:
             json.dump(opportunity, f, ensure_ascii=False, indent=2)
         
-        return filepath
+        return str(filepath)
     
     def load_opportunities(self, audio_filename):
         """Carga todas las oportunidades asociadas a un audio desde Supabase"""
@@ -182,10 +184,10 @@ class OpportunitiesManager:
         prefix = f"opp_{audio_filename.replace('.', '_')}_"
         
         try:
-            files = os.listdir(OPPORTUNITIES_DIR)
+            files = os.listdir(str(OPPORTUNITIES_DIR))
             for file in files:
                 if file.startswith(prefix) and file.endswith(".json"):
-                    filepath = os.path.join(OPPORTUNITIES_DIR, file)
+                    filepath = OPPORTUNITIES_DIR / file
                     with open(filepath, "r", encoding="utf-8") as f:
                         opp = json.load(f)
                         opportunities.append(opp)
@@ -228,7 +230,7 @@ class OpportunitiesManager:
     def _update_opportunity_local(self, opportunity, audio_filename):
         """Fallback: Actualiza una oportunidad en archivo JSON"""
         filename = f"opp_{audio_filename.replace('.', '_')}_{opportunity['id']}.json"
-        filepath = os.path.join(OPPORTUNITIES_DIR, filename)
+        filepath = OPPORTUNITIES_DIR / filename
         
         with open(filepath, "w", encoding="utf-8") as f:
             json.dump(opportunity, f, ensure_ascii=False, indent=2)
@@ -252,11 +254,11 @@ class OpportunitiesManager:
         prefix = f"opp_{audio_filename.replace('.', '_')}_"
         
         try:
-            files = os.listdir(OPPORTUNITIES_DIR)
+            files = os.listdir(str(OPPORTUNITIES_DIR))
             for file in files:
                 if file.startswith(prefix) and opportunity_id in file:
-                    filepath = os.path.join(OPPORTUNITIES_DIR, file)
-                    os.remove(filepath)
+                    filepath = OPPORTUNITIES_DIR / file
+                    filepath.unlink()
                     return True
         except:
             pass

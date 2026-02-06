@@ -4,17 +4,19 @@ from datetime import datetime
 from pathlib import Path
 import streamlit as st
 
-RECORDINGS_DIR = "recordings"
+# Obtener ruta a datos desde la carpeta parent/data
+BASE_DIR = Path(__file__).parent.parent / "data"
+RECORDINGS_DIR = BASE_DIR / "recordings"
 
 class AudioRecorder:
     def __init__(self):
         # Crear directorio si no existe
-        Path(RECORDINGS_DIR).mkdir(exist_ok=True)
+        RECORDINGS_DIR.mkdir(parents=True, exist_ok=True)
     
     def get_recordings_list(self):
         """Obtiene lista de audios grabados"""
         try:
-            files = os.listdir(RECORDINGS_DIR)
+            files = os.listdir(str(RECORDINGS_DIR))
             audio_files = [f for f in files if f.endswith(('.wav', '.mp3', '.m4a', '.webm'))]
             return sorted(audio_files, reverse=True)  # Más recientes primero
         except:
@@ -55,22 +57,22 @@ class AudioRecorder:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             filename = f"recording_{timestamp}.wav"
         
-        filepath = os.path.join(RECORDINGS_DIR, filename)
+        filepath = RECORDINGS_DIR / filename
         
         # Guardar el archivo
         with open(filepath, "wb") as f:
             f.write(audio_data)
         
-        return filepath
+        return str(filepath)
     
     def delete_recording(self, filename):
         """Elimina un archivo de audio"""
-        filepath = os.path.join(RECORDINGS_DIR, filename)
-        if os.path.exists(filepath):
-            os.remove(filepath)
+        filepath = RECORDINGS_DIR / filename
+        if filepath.exists():
+            filepath.unlink()
             return True
         return False
     
     def get_recording_path(self, filename):
         """Obtiene la ruta completa de un archivo"""
-        return os.path.join(RECORDINGS_DIR, filename)
+        return str(RECORDINGS_DIR / filename)

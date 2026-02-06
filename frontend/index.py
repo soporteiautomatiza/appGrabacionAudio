@@ -1,10 +1,16 @@
 import streamlit as st
 import os
+import sys
+from pathlib import Path
+
+# Agregar carpeta backend al path para importar módulos
+sys.path.insert(0, str(Path(__file__).parent.parent / "backend"))
+
 import AudioRecorder
-import Transcriber
-import Model
+from Transcriber import Transcriber
+from Model import Model
 # Force redeploy with updated credentials - 2026-02-05
-import OpportunitiesManager
+from OpportunitiesManager import OpportunitiesManager
 from datetime import datetime
 import hashlib
 import database as db_utils

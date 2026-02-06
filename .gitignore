@@ -6,6 +6,32 @@ __pycache__/
 # C extensions
 *.so
 
+# Entorno de desarrollo
+.venv/
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# SEGURIDAD - Nunca commitear estos archivos
+.env
+.env.local
+.env.*.local
+.streamlit/secrets.toml
+.streamlit/secrets.toml*
+
+# Datos locales (grabaciones, oportunidades, etc)
+data/
+recordings/
+opportunities/
+
 # Distribution / packaging
 .Python
 build/
@@ -48,6 +74,16 @@ coverage.xml
 *.py,cover
 .hypothesis/
 .pytest_cache/
+
+# Sistema
+Thumbs.db
+.AppleDouble
+.LSOverride
+
+# Logs
+*.log
+*.pot
+
 
 # Translations
 *.mo
