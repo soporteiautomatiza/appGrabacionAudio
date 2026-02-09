@@ -120,7 +120,7 @@ with col2:
         search_query = st.text_input(
             "🔍 Buscar audio:",
             placeholder="Nombre del archivo...",
-            key="audio_search"
+            key="audio_search"  # Se limpia automáticamente cuando el selectbox cambia
         )
         
         # Filtrar audios EN TIEMPO REAL mientras escribe
@@ -160,9 +160,6 @@ with col2:
             )
             
             if selected_audio:
-                # Limpiar búsqueda anterior
-                st.session_state.audio_search = ""
-                
                 # Cargar transcripción existente automáticamente si existe
                 if selected_audio != st.session_state.get("loaded_audio"):
                     existing_transcription = db_utils.get_transcription_by_filename(selected_audio)
