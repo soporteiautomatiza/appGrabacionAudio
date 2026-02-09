@@ -11,6 +11,7 @@ sys.path.insert(0, str(app_root / "frontend"))
 # Importar configuración y logger
 from config import APP_NAME, AUDIO_EXTENSIONS
 from logger import get_logger
+from frontend_helpers import init_session, reset_audio_input, clean_filename, filter_recordings, get_transcription_status, enum_selectbox
 
 logger = get_logger(__name__)
 
@@ -40,32 +41,8 @@ transcriber_model = Transcriber()
 chat_model = Model()
 opp_manager = OpportunitiesManager()
 
-# Inicializar estado de sesión
-if "processed_audios" not in st.session_state:
-    st.session_state.processed_audios = set()  # Audios ya procesados
-if "recordings" not in st.session_state:
-    st.session_state.recordings = recorder.get_recordings_from_supabase()
-if "selected_audio" not in st.session_state:
-    st.session_state.selected_audio = None
-if "upload_key_counter" not in st.session_state:
-    st.session_state.upload_key_counter = 0
-if "record_key_counter" not in st.session_state:
-    st.session_state.record_key_counter = 0
-if "keywords" not in st.session_state:
-    st.session_state.keywords = {}  # Palabras clave
-if "delete_confirmation" not in st.session_state:
-    st.session_state.delete_confirmation = {}  # Confirmacion de eliminacion
-if "transcription_cache" not in st.session_state:
-    st.session_state.transcription_cache = {}  # Caché de transcripciones
-if "chat_history_limit" not in st.session_state:
-    st.session_state.chat_history_limit = 50  # Límite máximo de mensajes en chat
-if "opp_delete_confirmation" not in st.session_state:
-    st.session_state.opp_delete_confirmation = {}  # Confirmación de eliminación de oportunidades
-
-st.title(APP_NAME)
-
-# Crear dos columnas principales para la carga
-col1, col2 = st.columns([1, 1])
+# Inicializar state session de una vez
+init_session()
 
 with col1:
     # GRABADORA DE AUDIO EN VIVO (nativa de Streamlit)
@@ -84,8 +61,7 @@ with col1:
             success, recording_id = process_audio_file(audio_bytes, filename, recorder, db_utils)
             
             if success:
-                # Reset el widget para que no se procese nuevamente
-                st.session_state.record_key_counter += 1
+                reset_audio_input("record_key_counter")
     
     # Opción de subir archivo
     st.markdown('<h3 style="color: white;">Sube un archivo de audio</h3>', unsafe_allow_html=True)
@@ -103,8 +79,7 @@ with col1:
             success, recording_id = process_audio_file(audio_bytes, filename, recorder, db_utils)
             
             if success:
-                # Reset el widget para que no se procese nuevamente
-                st.session_state.upload_key_counter += 1
+                reset_audio_input("upload_key_counter")
 
 with col2:
     st.markdown('<h3 style="color: white;">Audios Guardados</h3>', unsafe_allow_html=True)
@@ -136,12 +111,8 @@ with col2:
             if filtered_recordings:
                 st.markdown(f"**📌 {len(filtered_recordings)} resultado(s):**")
                 for recording in filtered_recordings:
-                    display_name = recording.replace("_", " ").replace(".wav", "").replace(".mp3", "").replace(".m4a", "").replace(".webm", "").replace(".ogg", "").replace(".flac", "")
-                    # Usar caché para evitar múltiples queries a Supabase
-                    if recording not in st.session_state.transcription_cache:
-                        st.session_state.transcription_cache[recording] = db_utils.get_transcription_by_filename(recording)
-                    is_transcribed = " ✓ Transcrito" if st.session_state.transcription_cache[recording] else ""
-                    st.caption(f"🎵 {display_name}{is_transcribed}")
+                    is_transcribed = get_transcription_status(recording, db_utils)
+                    st.caption(f"🎵 {clean_filename(recording)}{is_transcribed}")
             else:
                 show_warning(f"No se encontraron audios con '{search_query}'")
         else:
@@ -154,9 +125,7 @@ with col2:
             selected_audio = st.selectbox(
                 "Selecciona un audio para transcribir",
                 filtered_recordings,
-                format_func=lambda x: x.replace("_", " ").replace(".wav", "").replace(".mp3", "").replace(".m4a", "").replace(".webm", "").replace(".ogg", "").replace(".flac", "") + (
-                    " ✓ Transcrito" if st.session_state.transcription_cache.get(x) or db_utils.get_transcription_by_filename(x) else ""
-                )
+                format_func=lambda x: f"{clean_filename(x)}{get_transcription_status(x, db_utils)}"
             )
             
             if selected_audio:
@@ -235,7 +204,7 @@ with col2:
             audios_to_delete = st.multiselect(
                 "Audios a eliminar:",
                 filtered_recordings,
-                format_func=lambda x: x.replace("_", " ").replace(".wav", "").replace(".mp3", "").replace(".m4a", "").replace(".webm", "").replace(".ogg", "").replace(".flac", "")
+                format_func=clean_filename
             )
             
             if audios_to_delete:
@@ -397,31 +366,11 @@ if st.session_state.get("chat_enabled", False):
                 with col_opp2:
                     st.write("**Estado:**")
                     status_options = {"Nuevo": "new", "En progreso": "in_progress", "Cerrado": "closed", "Ganado": "won"}
-                    status_display_names = list(status_options.keys())
-                    current_status = opp.get('status', 'new')
-                    current_status_label = [k for k, v in status_options.items() if v == current_status][0]
-                    selected_status_label = st.selectbox(
-                        "Cambiar estado",
-                        status_display_names,
-                        index=status_display_names.index(current_status_label),
-                        key=f"status_{idx}",
-                        label_visibility="collapsed"
-                    )
-                    new_status = status_options[selected_status_label]
+                    new_status = enum_selectbox("Cambiar estado", status_options, opp.get('status', 'new'), key=f"status_{idx}")
                     
                     st.write("**Prioridad:**")
                     priority_options = {"Baja": "Low", "Media": "Medium", "Alta": "High"}
-                    priority_display_names = list(priority_options.keys())
-                    current_priority = opp.get('priority', 'Medium')
-                    current_priority_label = [k for k, v in priority_options.items() if v == current_priority][0]
-                    selected_priority_label = st.selectbox(
-                        "Cambiar prioridad",
-                        priority_display_names,
-                        index=priority_display_names.index(current_priority_label),
-                        key=f"priority_{idx}",
-                        label_visibility="collapsed"
-                    )
-                    new_priority = priority_options[selected_priority_label]
+                    new_priority = enum_selectbox("Cambiar prioridad", priority_options, opp.get('priority', 'Medium'), key=f"priority_{idx}")
                 
                 col_save, col_delete = st.columns(2)
                 with col_save:
