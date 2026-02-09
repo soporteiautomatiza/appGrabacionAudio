@@ -31,14 +31,20 @@ class OpportunitiesManager:
         """Obtiene el ID del recording por nombre de archivo"""
         try:
             if not self.db:
+                logger.warning(f"Base de datos no disponible para obtener ID de {filename}")
                 return None
             
             response = self.db.table("recordings").select("id").eq("filename", filename).execute()
             if response and response.data and len(response.data) > 0:
-                return response.data[0]["id"]
+                recording_id = response.data[0]["id"]
+                logger.debug(f"Recording ID obtenido para {filename}: {recording_id}")
+                return recording_id
+            
+            logger.warning(f"No se encontró recording para {filename}")
+            return None
         except Exception as e:
-            logger.error(f"Error retrieving recording ID for {filename}: {str(e)}")
-        return None
+            logger.error(f"Error al obtener recording ID para {filename}: {type(e).__name__} - {str(e)}")
+            return None
     
     def extract_opportunities(self, transcription: str, keywords_list: List[str]) -> List[Dict]:
         """Extrae oportunidades de negocio basadas en palabras clave encontradas en la transcripción"""
@@ -92,13 +98,13 @@ class OpportunitiesManager:
         """Guarda una oportunidad en Supabase"""
         try:
             if not self.db:
-                # Fallback a archivo JSON si no hay BD
+                logger.warning(f"BD no disponible, guardando oportunidad localmente para {audio_filename}")
                 return self._save_opportunity_local(opportunity, audio_filename)
             
             # Obtener el recording_id
             recording_id = self.get_recording_id(audio_filename)
             if not recording_id:
-                # Fallback a archivo JSON
+                logger.warning(f"No se puede guardar oportunidad: Recording ID no encontrado para {audio_filename}")
                 return self._save_opportunity_local(opportunity, audio_filename)
             
             # Preparar datos para Supabase - con formato correcto para la tabla
@@ -128,13 +134,16 @@ class OpportunitiesManager:
                 # Guardar el ID de Supabase para futuros updates/deletes
                 supabase_id = response.data[0].get("id")
                 opportunity["supabase_id"] = supabase_id
-                opportunity["id"] = supabase_id  # También guardar como id principal
+                opportunity["id"] = supabase_id
+                logger.info(f"Oportunidad guardada en Supabase: {supabase_id} para {audio_filename}")
                 return True
             
+            logger.warning(f"Supabase respondió vacío al guardar oportunidad para {audio_filename}")
             return False
         
         except Exception as e:
-            # Fallback a archivo JSON
+            logger.error(f"Error al guardar oportunidad para {audio_filename}: {type(e).__name__} - {str(e)}")
+            logger.info("Haciendo fallback a almacenamiento local")
             return self._save_opportunity_local(opportunity, audio_filename)
     
     def _save_opportunity_local(self, opportunity, audio_filename):
@@ -153,13 +162,13 @@ class OpportunitiesManager:
         
         try:
             if not self.db:
-                # Fallback a archivos locales
+                logger.warning(f"BD no disponible, cargando oportunidades locales para {audio_filename}")
                 return self._load_opportunities_local(audio_filename)
             
             # Obtener el recording_id
             recording_id = self.get_recording_id(audio_filename)
             if not recording_id:
-                # Fallback a archivos locales
+                logger.warning(f"No se puede cargar oportunidades: Recording ID no encontrado para {audio_filename}")
                 return self._load_opportunities_local(audio_filename)
             
             # Cargar desde Supabase
@@ -179,9 +188,13 @@ class OpportunitiesManager:
                         "occurrence": 1
                     }
                     opportunities.append(opportunity)
+                logger.info(f"Cargadas {len(opportunities)} oportunidades desde Supabase para {audio_filename}")
+            else:
+                logger.debug(f"No hay oportunidades en Supabase para {audio_filename}")
         
         except Exception as e:
-            # Fallback a archivos locales
+            logger.error(f"Error al cargar oportunidades para {audio_filename}: {type(e).__name__} - {str(e)}")
+            logger.info("Haciendo fallback a archivos locales")
             return self._load_opportunities_local(audio_filename)
         
         return opportunities
@@ -208,14 +221,14 @@ class OpportunitiesManager:
         """Actualiza una oportunidad en Supabase"""
         try:
             if not self.db:
-                # Fallback a archivo JSON
+                logger.warning(f"BD no disponible, actualizando oportunidad localmente")
                 return self._update_opportunity_local(opportunity, audio_filename)
             
             # Obtener el ID (puede estar en 'id' o 'supabase_id')
             opp_id = opportunity.get("supabase_id") or opportunity.get("id")
             
             if not opp_id:
-                # Fallback a archivo JSON si no hay ID
+                logger.error(f"No se puede actualizar oportunidad: ID no disponible")
                 return self._update_opportunity_local(opportunity, audio_filename)
             
             # Actualizar en Supabase - campos que admite la tabla
@@ -229,10 +242,16 @@ class OpportunitiesManager:
             # Intentar actualizar
             response = self.db.table("opportunities").update(update_data).eq("id", opp_id).execute()
             
-            return response is not None and len(response.data) > 0
+            if response is not None and len(response.data) > 0:
+                logger.info(f"Oportunidad actualizada en Supabase: {opp_id}")
+                return True
+            
+            logger.warning(f"Supabase no confirmó actualización de oportunidad {opp_id}")
+            return False
         
         except Exception as e:
-            # Fallback a archivo JSON
+            logger.error(f"Error al actualizar oportunidad {opportunity.get('id', 'unknown')}: {type(e).__name__} - {str(e)}")
+            logger.info("Haciendo fallback a almacenamiento local")
             return self._update_opportunity_local(opportunity, audio_filename)
     
     def _update_opportunity_local(self, opportunity, audio_filename):
@@ -250,11 +269,17 @@ class OpportunitiesManager:
                 # Intentar eliminar de Supabase usando el UUID
                 response = self.db.table("opportunities").delete().eq("id", opportunity_id).execute()
                 if response:
+                    logger.info(f"Oportunidad eliminada de Supabase: {opportunity_id}")
                     return True
+                else:
+                    logger.warning(f"Supabase no confirmó eliminación de oportunidad {opportunity_id}")
+            else:
+                logger.warning(f"No se puede conectar a BD para eliminar oportunidad {opportunity_id}")
         except Exception as e:
-            logger.error(f"Error deleting opportunity {opportunity_id} from Supabase: {str(e)}")
+            logger.error(f"Error al eliminar oportunidad {opportunity_id} de Supabase: {type(e).__name__} - {str(e)}")
         
         # Fallback: eliminar archivo local
+        logger.debug(f"Intentando eliminación local de oportunidad {opportunity_id}")
         return self._delete_opportunity_local(opportunity_id, audio_filename)
     
     def _delete_opportunity_local(self, opportunity_id, audio_filename):
