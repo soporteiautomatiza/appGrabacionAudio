@@ -219,33 +219,29 @@ if st.session_state.get("chat_enabled", False) and st.session_state.get("context
         st.text_area("", st.session_state.contexto, height=200, disabled=True, label_visibility="collapsed")
     
     # SECCIÓN DE PALABRAS CLAVE
-    st.subheader("Palabras Clave Contextualizadas")
-    st.caption("Añade palabras clave para que la IA las entienda mejor")
+    st.subheader("Palabras Clave")
+    st.caption("Añade palabras clave para el análisis de oportunidades")
     
-    col_kw1, col_kw2, col_kw3 = st.columns([1.5, 1.5, 1])
+    col_kw1, col_kw2 = st.columns([2, 1])
     with col_kw1:
         new_keyword = st.text_input("Palabra clave:", placeholder="Ej: presupuesto")
     with col_kw2:
-        keyword_context = st.text_input("Contexto/Descripción:", placeholder="Ej: total de $5000")
-    with col_kw3:
         if st.button("➕ Añadir", use_container_width=True):
             if new_keyword:
-                st.session_state.keywords[new_keyword] = keyword_context if keyword_context else "Sin descripción"
+                st.session_state.keywords[new_keyword] = new_keyword
                 show_success(f"'{new_keyword}' añadida")
                 st.rerun()
     
     # Mostrar palabras clave
     if st.session_state.keywords:
         st.write("**📌 Palabras clave configuradas:**")
-        for keyword, context in st.session_state.keywords.items():
-            col_display = st.columns([0.5, 2, 2, 0.3])
+        for keyword in st.session_state.keywords.keys():
+            col_display = st.columns([0.5, 2.5, 0.3])
             with col_display[0]:
                 st.write("🏷️")
             with col_display[1]:
                 st.write(f"**{keyword}**")
             with col_display[2]:
-                st.write(f"_{context}_")
-            with col_display[3]:
                 if st.button("✖️", key=f"del_{keyword}"):
                     del st.session_state.keywords[keyword]
                     st.rerun()
@@ -352,9 +348,8 @@ if st.session_state.get("chat_enabled", False):
     st.header("Asistente IA para Análisis de Reuniones")
     st.caption(f"Conversando sobre: {st.session_state.get('selected_audio', 'audio')}")
     
-    # Mostrar palabras clave activas
-    if st.session_state.get("keywords"):
-        show_info(f"Palabras clave activas: {', '.join(st.session_state.keywords.keys())}")
+        if st.session_state.get("keywords"):
+            show_info(f"Palabras clave activas: {', '.join(st.session_state.keywords.keys())}")
     
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []

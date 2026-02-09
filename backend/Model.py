@@ -28,7 +28,7 @@ class Model:
         Args:
             question (str): Pregunta del usuario
             context (str): Contexto (transcripción del audio)
-            keywords (dict, optional): Palabras clave con sus contextos
+            keywords (dict, optional): Palabras clave (dict o list)
             
         Returns:
             str: Respuesta generada por el modelo
@@ -36,10 +36,15 @@ class Model:
         try:
             # Construir sección de palabras clave
             keywords_section = ""
-            if keywords and len(keywords) > 0:
-                keywords_list = [f"{k}: {v}" for k, v in keywords.items()]
-                keywords_section = f"\n\n📌 PALABRAS CLAVE IMPORTANTES:\n" + "\n".join(keywords_list)
-                keywords_section += "\nTen en cuenta estas palabras clave al responder y organizalas en tu respuesta si es relevante."
+            if keywords:
+                if isinstance(keywords, dict):
+                    keywords_list = list(keywords.keys())
+                else:
+                    keywords_list = keywords
+                
+                if len(keywords_list) > 0:
+                    keywords_section = f"\n\n📌 PALABRAS CLAVE IMPORTANTES:\n" + ", ".join(keywords_list)
+                    keywords_section += "\nTen en cuenta estas palabras clave al responder y organizalas en tu respuesta si es relevante."
             
             prompt = f"""Eres un asistente inteligente que ayuda a responder preguntas basado en el siguiente contexto:
 
