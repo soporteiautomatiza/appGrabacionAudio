@@ -348,8 +348,8 @@ if st.session_state.get("chat_enabled", False):
     st.header("Asistente IA para Análisis de Reuniones")
     st.caption(f"Conversando sobre: {st.session_state.get('selected_audio', 'audio')}")
     
-        if st.session_state.get("keywords"):
-            show_info(f"Palabras clave activas: {', '.join(st.session_state.keywords.keys())}")
+    if st.session_state.get("keywords"):
+        show_info(f"Palabras clave activas: {', '.join(st.session_state.keywords.keys())}")
     
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
