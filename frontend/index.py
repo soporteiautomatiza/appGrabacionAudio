@@ -567,6 +567,3 @@ with st.expander("🔧 DEBUG - Estado de Supabase"):
         st.write("1. Verifica que RLS esté DESHABILITADO en ambas tablas")
         st.write("2. Haz click en 'Reboot app' en el menú (3 puntos arriba)")
         st.write("3. Verifica que no haya espacios en blanco en los Secrets")
-
-# Renderizar notificaciones activas en la cola (al final de la página)
-render_notifications()
