@@ -302,9 +302,11 @@ if st.session_state.get("chat_enabled", False) and st.session_state.get("context
                 if not cleaned_keyword:
                     show_error_expanded("La palabra clave no puede estar vacía")
                 # Validar que no sea duplicada
-                elif cleaned_keyword in st.session_state.keywords:
+                elif cleaned_keyword in st.session_state.get("keywords", {}):
                     show_warning_expanded(f"'{cleaned_keyword}' ya fue añadida")
                 else:
+                    if "keywords" not in st.session_state:
+                        st.session_state.keywords = {}
                     st.session_state.keywords[cleaned_keyword] = cleaned_keyword
                     show_success_expanded(f"'{cleaned_keyword}' añadida")
                     st.rerun()
@@ -312,11 +314,12 @@ if st.session_state.get("chat_enabled", False) and st.session_state.get("context
                 show_error_expanded("Ingresa una palabra clave")
     
     # Mostrar palabras clave
-    if st.session_state.keywords:
+    keywords_dict = st.session_state.get("keywords", {})
+    if keywords_dict:
         st.markdown('<h4 style="color: white; margin-top: 20px; margin-bottom: 16px;">Palabras clave configuradas</h4>', unsafe_allow_html=True)
         
         # Mostrar palabras clave con botones de eliminar al lado
-        for keyword in st.session_state.keywords.keys():
+        for keyword in list(keywords_dict.keys()):
             col_badge, col_delete = st.columns([4, 1])
             
             with col_badge:
@@ -468,7 +471,9 @@ if st.session_state.get("chat_enabled", False):
     st.caption(f"Conversando sobre: {st.session_state.get('selected_audio', 'audio')}")
     
     if st.session_state.get("keywords"):
-        show_info_expanded(f"Palabras clave activas: {', '.join(st.session_state.keywords.keys())}")
+        keywords_list = list(st.session_state.get("keywords", {}).keys())
+        if keywords_list:
+            show_info_expanded(f"Palabras clave activas: {', '.join(keywords_list)}")
     
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
