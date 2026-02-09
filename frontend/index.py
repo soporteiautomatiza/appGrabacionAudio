@@ -391,7 +391,8 @@ if st.session_state.get("chat_enabled", False):
                     )
                 
                 with col_opp2:
-                    st.write("**Estad{"Nuevo": "new", "En progreso": "in_progress", "Cerrado": "closed", "Ganado": "won"}
+                    st.write("**Estado:**")
+                    status_options = {"Nuevo": "new", "En progreso": "in_progress", "Cerrado": "closed", "Ganado": "won"}
                     status_display_names = list(status_options.keys())
                     current_status = opp.get('status', 'new')
                     current_status_label = [k for k, v in status_options.items() if v == current_status][0]
@@ -413,26 +414,25 @@ if st.session_state.get("chat_enabled", False):
                         "Cambiar prioridad",
                         priority_display_names,
                         index=priority_display_names.index(current_priority_label),
-                        key=f"prioGuardar cambios", key=f"save_{idx}", use_container_width=True):
+                        key=f"priority_{idx}",
+                        label_visibility="collapsed"
+                    )
+                    new_priority = priority_options[selected_priority_label]
+                
+                col_save, col_delete = st.columns(2)
+                with col_save:
+                    if st.button("Guardar cambios", key=f"save_{idx}", use_container_width=True):
                         opp['notes'] = new_notes
                         opp['status'] = new_status
                         opp['priority'] = new_priority
                         if opp_manager.update_opportunity(opp, selected_audio):
                             st.toast("✓ Cambios guardados")
-                            st.rerun()  # Actualizar cambios inmediatamente
+                            st.rerun()
                         else:
                             st.toast("⚠️ Error al guardar")
                 
                 with col_delete:
-                    if st.button("] = new_priority
-                        if opp_manager.update_opportunity(opp, selected_audio):
-                            st.toast("✓ Cambios guardados")
-                            st.rerun()  # Actualizar cambios inmediatamente
-                        else:
-                            st.toast("⚠️ Error al guardar")
-                
-                with col_delete:
-                    if st.button("🗑️ Eliminar", key=f"delete_{idx}", use_container_width=True):
+                    if st.button("Eliminar", key=f"delete_{idx}", use_container_width=True):
                         st.session_state.opp_delete_confirmation[idx] = True
                         st.rerun()
                     
