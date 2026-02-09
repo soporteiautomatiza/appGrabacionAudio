@@ -224,7 +224,7 @@ with col2:
                                     st.session_state.loaded_audio = None
                                     st.session_state.selected_audio = None
                                     st.session_state.delete_confirmation.pop(selected_audio, None)
-                                    st.success(f"✓ '{selected_audio}' eliminado")
+                                    show_success_expanded(f"✓ '{selected_audio}' eliminado")
                         with col_no:
                             if st.button("✗ Cancelar", key=f"confirm_no_{selected_audio}"):
                                 st.session_state.delete_confirmation.pop(selected_audio, None)
@@ -263,7 +263,7 @@ with col2:
                             st.session_state.selected_audio = None
                             
                             if deleted_count > 0:
-                                st.success(f"✓ {deleted_count} audio(s) eliminado(s) - Actualización instantánea")
+                                show_success_expanded(f"✓ {deleted_count} audio(s) eliminado(s) - Actualización instantánea")
                 
                 with col_cancel:
                     st.write("")
@@ -434,7 +434,7 @@ if st.session_state.get("chat_enabled", False):
                         if opp_manager.update_opportunity(opp['id'], updates):
                             # Actualización local instantánea (100ms en lugar de 2s)
                             update_opportunity_local(idx, updates)
-                            st.success("✓ Cambios guardados - Actualización instantánea")
+                            show_success_expanded("✓ Cambios guardados - Actualización instantánea")
                         else:
                             st.toast("⚠️ Error al guardar")
                 
@@ -452,7 +452,7 @@ if st.session_state.get("chat_enabled", False):
                                     # Actualización local instantánea (sin st.rerun())
                                     delete_opportunity_local(idx)
                                     st.session_state.opp_delete_confirmation.pop(idx, None)
-                                    st.success("✓ Oportunidad eliminada - Actualización instantánea")
+                                    show_success_expanded("✓ Oportunidad eliminada - Actualización instantánea")
                         with col_no:
                             if st.button("✗ Cancelar", key=f"opp_confirm_no_{idx}", use_container_width=True):
                                 st.session_state.opp_delete_confirmation.pop(idx, None)
