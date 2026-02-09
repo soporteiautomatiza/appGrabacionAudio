@@ -44,6 +44,11 @@ opp_manager = OpportunitiesManager()
 # Inicializar state session de una vez
 init_session()
 
+st.title(APP_NAME)
+
+# Crear dos columnas principales para la carga
+col1, col2 = st.columns([1, 1])
+
 with col1:
     # GRABADORA DE AUDIO EN VIVO (nativa de Streamlit)
     st.markdown('<h3 style="color: white;">Grabadora en vivo</h3>', unsafe_allow_html=True)
