@@ -53,6 +53,10 @@ if "upload_key_counter" not in st.session_state:
     st.session_state.upload_key_counter = 0
 if "record_key_counter" not in st.session_state:
     st.session_state.record_key_counter = 0
+if "keywords" not in st.session_state:
+    st.session_state.keywords = {}  # Palabras clave
+if "delete_confirmation" not in st.session_state:
+    st.session_state.delete_confirmation = {}  # Confirmacion de eliminacion
 
 st.title(APP_NAME)
 
@@ -108,14 +112,36 @@ with col2:
     if recordings:
         show_info(f"Total: {len(recordings)} audio(s)")
         
+        # BÚSQUEDA Y FILTRO DE AUDIOS
+        search_query = st.text_input(
+            "🔍 Buscar audio:",
+            placeholder="Nombre del archivo...",
+            key="audio_search"
+        )
+        
+        # Filtrar audios según búsqueda
+        if search_query.strip():
+            filtered_recordings = [
+                r for r in recordings 
+                if search_query.lower() in r.lower()
+            ]
+        else:
+            filtered_recordings = recordings
+        
+        # Mostrar resultados de búsqueda
+        if search_query.strip() and not filtered_recordings:
+            show_warning(f"No se encontraron audios con '{search_query}'")
+        
         # Tabs para diferentes vistas
         tab1, tab2 = st.tabs(["Transcribir", "Gestión en lote"])
         
         with tab1:
             selected_audio = st.selectbox(
                 "Selecciona un audio para transcribir",
-                recordings,
-                format_func=lambda x: x.replace("_", " ").replace(".wav", "").replace(".mp3", "").replace(".m4a", "").replace(".webm", "").replace(".ogg", "").replace(".flac", "")
+                filtered_recordings,
+                format_func=lambda x: x.replace("_", " ").replace(".wav", "").replace(".mp3", "").replace(".m4a", "").replace(".webm", "").replace(".ogg", "").replace(".flac", "") + (
+                    " ✓ Transcrito" if db_utils.get_transcription_by_filename(x) else ""
+                )
             )
             
             if selected_audio:
@@ -164,11 +190,26 @@ with col2:
                 
                 with col_delete:
                     if st.button("Eliminar", key=f"delete_{selected_audio}"):
-                        if delete_audio(selected_audio, recorder, db_utils):
-                            st.session_state.recordings = recorder.get_recordings_from_supabase()
-                            st.session_state.chat_enabled = False
-                            st.session_state.loaded_audio = None
-                            st.rerun()
+                        # Pedir confirmación
+                        st.session_state.delete_confirmation[selected_audio] = True
+                        st.rerun()
+                    
+                    # Mostrar confirmación si está pendiente
+                    if st.session_state.delete_confirmation.get(selected_audio):
+                        st.warning(f"⚠️ ¿Eliminar '{selected_audio}'?")
+                        col_yes, col_no = st.columns(2)
+                        with col_yes:
+                            if st.button("✓ Sí, eliminar", key=f"confirm_yes_{selected_audio}"):
+                                if delete_audio(selected_audio, recorder, db_utils):
+                                    st.session_state.recordings = recorder.get_recordings_from_supabase()
+                                    st.session_state.chat_enabled = False
+                                    st.session_state.loaded_audio = None
+                                    st.session_state.delete_confirmation.pop(selected_audio, None)
+                                    st.rerun()
+                        with col_no:
+                            if st.button("✗ Cancelar", key=f"confirm_no_{selected_audio}"):
+                                st.session_state.delete_confirmation.pop(selected_audio, None)
+                                st.rerun()
         
         with tab2:
             st.subheader("Eliminar múltiples audios")
@@ -176,7 +217,7 @@ with col2:
             
             audios_to_delete = st.multiselect(
                 "Audios a eliminar:",
-                recordings,
+                filtered_recordings,
                 format_func=lambda x: x.replace("_", " ").replace(".wav", "").replace(".mp3", "").replace(".m4a", "").replace(".webm", "").replace(".ogg", "").replace(".flac", "")
             )
             
@@ -228,9 +269,21 @@ if st.session_state.get("chat_enabled", False) and st.session_state.get("context
     with col_kw2:
         if st.button("➕ Añadir", use_container_width=True):
             if new_keyword:
-                st.session_state.keywords[new_keyword] = new_keyword
-                show_success(f"'{new_keyword}' añadida")
-                st.rerun()
+                # Limpiar espacios y convertir a minúsculas
+                cleaned_keyword = new_keyword.strip().lower()
+                
+                # Validar que no esté vacío después de limpiar
+                if not cleaned_keyword:
+                    show_error("La palabra clave no puede estar vacía")
+                # Validar que no sea duplicada
+                elif cleaned_keyword in st.session_state.keywords:
+                    show_warning(f"'{cleaned_keyword}' ya fue añadida")
+                else:
+                    st.session_state.keywords[cleaned_keyword] = cleaned_keyword
+                    show_success(f"'{cleaned_keyword}' añadida")
+                    st.rerun()
+            else:
+                show_error("Ingresa una palabra clave")
     
     # Mostrar palabras clave
     if st.session_state.keywords:
