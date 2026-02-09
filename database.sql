@@ -88,11 +88,13 @@ CREATE TABLE IF NOT EXISTS opportunities (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     
-    -- Constraints de integridad
+    -- Constraints de integridad (sin restricciones en status/priority para máxima flexibilidad)
+    CONSTRAINT opportunities_pk PRIMARY KEY (id),
+    CONSTRAINT opportunities_recording_id_fkey FOREIGN KEY (recording_id) REFERENCES recordings(id) ON DELETE CASCADE,
     CONSTRAINT opportunities_title_not_empty CHECK (title != ''),
-    CONSTRAINT opportunities_description_not_empty CHECK (description != ''),
-    CONSTRAINT opportunities_status_valid CHECK (status IN ('new', 'in_progress', 'completed', 'cancelled')),
-    CONSTRAINT opportunities_priority_valid CHECK (priority IN ('low', 'medium', 'high', 'critical'))
+    CONSTRAINT opportunities_description_not_empty CHECK (description != '')
+    -- NOTE: status y priority sin CHECK constraint para permitir cualquier valor
+    -- Actualiza estos valores según tu aplicación
 );
 
 -- Índices de performance
@@ -313,11 +315,14 @@ RELACIONES:
 - recordings 1-to-many opportunities (CASCADE DELETE)
 - recordings 1-to-many chat_history (CASCADE DELETE)
 
-ENUMS:
-- opportunities.status: 'new' | 'in_progress' | 'completed' | 'cancelled'
-- opportunities.priority: 'low' | 'medium' | 'high' | 'critical'
+ENUMS (SIN CONSTRAINTS - FLEXIBLES):
+- opportunities.status: Cualquier valor (ej: 'new', 'Open', 'won', 'in_progress', etc.)
+- opportunities.priority: Cualquier valor (ej: 'low', 'medium', 'high', 'critical', 'Low', 'High', etc.)
 - transcriptions.language: 'es' | 'en' | 'fr' | 'de' | 'pt' | 'it'
 - chat_history.role: 'user' | 'assistant'
+
+NOTA: status y priority NO tienen CHECK constraints para máxima flexibilidad.
+      Si necesitas validación, hazla en la aplicación (Python/Streamlit).
 
 VISTAS:
 - v_pending_opportunities: oportunidades sin resolver
