@@ -221,10 +221,12 @@ with col2:
                                     st.session_state.selected_audio = None
                                     st.session_state.delete_confirmation.pop(selected_audio, None)
                                     st.toast(f"✓ '{selected_audio}' eliminado")
+                                    st.rerun()  # Actualizar UI inmediatamente
                         with col_no:
                             if st.button("✗ Cancelar", key=f"confirm_no_{selected_audio}"):
                                 st.session_state.delete_confirmation.pop(selected_audio, None)
-                                st.toast("Eliminación cancelada")
+                                st.toast("Cancelado")
+                                st.rerun()  # Limpiar UI de confirmación
         
         with tab2:
             st.subheader("Eliminar múltiples audios")
@@ -259,6 +261,7 @@ with col2:
                         
                         if deleted_count > 0:
                             st.toast(f"✓ {deleted_count} audio(s) eliminado(s)")
+                            st.rerun()  # Actualizar UI inmediatamente
                 
                 with col_cancel:
                     st.write("")
@@ -399,6 +402,7 @@ if st.session_state.get("chat_enabled", False):
                         opp['priority'] = new_priority
                         if opp_manager.update_opportunity(opp, selected_audio):
                             st.toast("✓ Cambios guardados")
+                            st.rerun()  # Actualizar cambios inmediatamente
                         else:
                             st.toast("⚠️ Error al guardar")
                 
@@ -416,12 +420,14 @@ if st.session_state.get("chat_enabled", False):
                                 if opp_manager.delete_opportunity(opp['id'], selected_audio):
                                     st.session_state.opp_delete_confirmation.pop(idx, None)
                                     st.toast("✓ Oportunidad eliminada")
+                                    st.rerun()  # Actualizar UI inmediatamente
                                 else:
                                     st.toast("⚠️ Error al eliminar")
                         with col_no:
                             if st.button("✗ Cancelar", key=f"opp_confirm_no_{idx}", use_container_width=True):
                                 st.session_state.opp_delete_confirmation.pop(idx, None)
                                 st.toast("Cancelado")
+                                st.rerun()  # Limpiar UI de confirmación
 
 # SECCIÓN DE CHAT
 
