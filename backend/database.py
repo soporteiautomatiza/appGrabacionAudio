@@ -96,7 +96,7 @@ def upload_audio_to_storage(filename: str, filepath: str) -> bool:
         response = db.storage.from_("recordings").upload(
             path=filename,
             file=file_data,
-            file_options={"upsert": True}
+            file_options={"upsert": "true"}  # "true" como string, no boolean
         )
         
         logger.info(f"✓ Audio subido a Storage exitosamente: {filename}")
