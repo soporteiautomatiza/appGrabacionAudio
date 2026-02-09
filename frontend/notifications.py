@@ -41,22 +41,14 @@ def _show_notification(message: str, notification_type: str) -> None:
 
 def _show_notification_expanded(message: str, notification_type: str) -> None:
     """
-    Función interna para mostrar notificaciones expandidas (para debug).
+    Función interna para mostrar notificaciones expandidas como toasts.
     
     Args:
         message: Texto a mostrar
-        notification_type: Tipo de notificación ('success', 'error', 'info')
+        notification_type: Tipo de notificación ('success', 'error', 'info', 'warning')
     """
-    style_class = NOTIFICATION_EXPANDED_STYLES.get(notification_type)
-    if not style_class:
-        return
-    
     icon = NOTIFICATION_STYLES.get(notification_type, {}).get("icon", "•")
-    st.markdown(f"""
-    <div class="notification-expanded {style_class}">
-        {icon} {message}
-    </div>
-    """, unsafe_allow_html=True)
+    st.toast(f"{icon} {message}", icon=None)
 
 
 # API pública - Notificaciones compactas
@@ -97,5 +89,5 @@ def show_info_expanded(message: str) -> None:
 
 
 def show_warning_expanded(message: str) -> None:
-    """Muestra un mensaje de advertencia visible completo"""
-    st.warning(message)
+    """Muestra un mensaje de advertencia en toast arriba a la derecha"""
+    _show_notification_expanded(message, "warning")
