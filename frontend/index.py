@@ -269,6 +269,8 @@ with col2:
         show_info("No hay audios guardados. Sube un archivo.")
 
 # SECCIÓN DE TRANSCRIPCIÓN
+st.divider()
+st.markdown("")  # Espaciador vertical
 
 if st.session_state.get("chat_enabled", False) and st.session_state.get("contexto"):
     st.header("Transcripción del Audio")
@@ -277,8 +279,11 @@ if st.session_state.get("chat_enabled", False) and st.session_state.get("context
     # Mostrar transcripción en un contenedor
     with st.container(border=True):
         st.text_area("", st.session_state.contexto, height=200, disabled=True, label_visibility="collapsed")
+                    
     
     # SECCIÓN DE PALABRAS CLAVE
+    st.divider()
+    st.markdown("")  # Espaciador vertical
     st.subheader("Palabras Clave")
     st.caption("Añade palabras clave para el análisis de oportunidades")
     
@@ -340,6 +345,8 @@ if st.session_state.get("chat_enabled", False) and st.session_state.get("context
                     show_warning("No se encontraron oportunidades con las palabras clave")
 
 # SECCIÓN DE OPORTUNIDADES
+st.divider()
+st.markdown("")  # Espaciador vertical
 
 if st.session_state.get("chat_enabled", False):
     selected_audio = st.session_state.get("selected_audio", "")
@@ -430,6 +437,8 @@ if st.session_state.get("chat_enabled", False):
                                 st.rerun()  # Limpiar UI de confirmación
 
 # SECCIÓN DE CHAT
+st.divider()
+st.markdown("")  # Espaciador vertical
 
 if st.session_state.get("chat_enabled", False):
     st.header("Asistente IA para Análisis de Reuniones")
@@ -496,6 +505,9 @@ else:
     show_info("Carga un audio y transcríbelo para habilitar el chat.")
 
 # SECCIÓN DEBUG
+st.divider()
+st.markdown("")  # Espaciador vertical
+
 with st.expander("🔧 DEBUG - Estado de Supabase"):
     show_info_expanded("Probando conexión a Supabase...")
     
