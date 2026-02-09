@@ -220,11 +220,11 @@ with col2:
                                     st.session_state.loaded_audio = None
                                     st.session_state.selected_audio = None
                                     st.session_state.delete_confirmation.pop(selected_audio, None)
-                                    st.toast(f"✓ '{selected_audio}' eliminado", icon="✓")
+                                    st.toast(f"✓ '{selected_audio}' eliminado")
                         with col_no:
                             if st.button("✗ Cancelar", key=f"confirm_no_{selected_audio}"):
                                 st.session_state.delete_confirmation.pop(selected_audio, None)
-                                st.toast("Eliminación cancelada", icon="ℹ️")
+                                st.toast("Eliminación cancelada")
         
         with tab2:
             st.subheader("Eliminar múltiples audios")
@@ -258,7 +258,7 @@ with col2:
                         st.session_state.selected_audio = None
                         
                         if deleted_count > 0:
-                            st.toast(f"✓ {deleted_count} audio(s) eliminado(s)", icon="✓")
+                            st.toast(f"✓ {deleted_count} audio(s) eliminado(s)")
                 
                 with col_cancel:
                     st.write("")
@@ -398,9 +398,9 @@ if st.session_state.get("chat_enabled", False):
                         opp['status'] = new_status
                         opp['priority'] = new_priority
                         if opp_manager.update_opportunity(opp, selected_audio):
-                            st.toast("✓ Cambios guardados", icon="✓")
+                            st.toast("✓ Cambios guardados")
                         else:
-                            st.toast("✗ Error al guardar", icon="✗")
+                            st.toast("⚠️ Error al guardar")
                 
                 with col_delete:
                     if st.button("🗑️ Eliminar", key=f"delete_{idx}", use_container_width=True):
@@ -415,13 +415,13 @@ if st.session_state.get("chat_enabled", False):
                             if st.button("✓ Sí, eliminar", key=f"opp_confirm_yes_{idx}", use_container_width=True):
                                 if opp_manager.delete_opportunity(opp['id'], selected_audio):
                                     st.session_state.opp_delete_confirmation.pop(idx, None)
-                                    st.toast("✓ Oportunidad eliminada", icon="✓")
+                                    st.toast("✓ Oportunidad eliminada")
                                 else:
-                                    st.toast("✗ Error al eliminar", icon="✗")
+                                    st.toast("⚠️ Error al eliminar")
                         with col_no:
                             if st.button("✗ Cancelar", key=f"opp_confirm_no_{idx}", use_container_width=True):
                                 st.session_state.opp_delete_confirmation.pop(idx, None)
-                                st.toast("Cancelado", icon="ℹ️")
+                                st.toast("Cancelado")
 
 # SECCIÓN DE CHAT
 
