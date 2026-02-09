@@ -17,7 +17,7 @@ logger = get_logger(__name__)
 # Importar de frontend (misma carpeta)
 from AudioRecorder import AudioRecorder
 import styles
-from notifications import show_success, show_error, show_warning, show_info, show_success_expanded, show_error_expanded, show_info_expanded, show_warning_expanded, show_success_debug, show_error_debug, show_info_debug
+from notifications import show_success, show_error, show_warning, show_info, show_success_expanded, show_error_expanded, show_info_expanded, show_warning_expanded, show_success_debug, show_error_debug, show_info_debug, render_notifications
 from utils import process_audio_file, delete_audio
 from performance import get_transcription_cached, update_opportunity_local, delete_opportunity_local, delete_keyword_local, delete_recording_local, init_optimization_state
 
@@ -34,6 +34,9 @@ st.set_page_config(layout="wide", page_title=APP_NAME)
 
 # Cargar estilos CSS desde archivo
 st.markdown(styles.get_styles(), unsafe_allow_html=True)
+
+# Renderizar notificaciones activas en la cola
+render_notifications()
 
 # Inicializar objetos
 recorder = AudioRecorder()
