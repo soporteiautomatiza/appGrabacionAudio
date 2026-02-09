@@ -41,14 +41,52 @@ def _show_notification(message: str, notification_type: str) -> None:
 
 def _show_notification_expanded(message: str, notification_type: str) -> None:
     """
-    Función interna para mostrar notificaciones expandidas como toasts.
+    Función interna para mostrar notificaciones expandidas con colores personalizados.
     
     Args:
         message: Texto a mostrar
         notification_type: Tipo de notificación ('success', 'error', 'info', 'warning')
     """
     icon = NOTIFICATION_STYLES.get(notification_type, {}).get("icon", "•")
-    st.toast(f"{icon} {message}", icon=None)
+    
+    # Colores personalizados para cada tipo
+    colors = {
+        "success": {"bg": "#10b981", "text": "white"},  # Verde
+        "error": {"bg": "#ef4444", "text": "white"},    # Rojo
+        "warning": {"bg": "#f59e0b", "text": "white"},  # Amarillo
+        "info": {"bg": "#3b82f6", "text": "white"}      # Azul
+    }
+    
+    color_style = colors.get(notification_type, colors["info"])
+    
+    st.markdown(f"""
+    <div style="
+        background-color: {color_style['bg']};
+        color: {color_style['text']};
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin: 8px 0;
+        font-weight: 600;
+        font-size: 14px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        animation: slideInRight 0.3s ease-out;
+        display: inline-block;
+    ">
+        {icon} {message}
+    </div>
+    <style>
+        @keyframes slideInRight {{
+            from {{
+                opacity: 0;
+                transform: translateX(20px);
+            }}
+            to {{
+                opacity: 1;
+                transform: translateX(0);
+            }}
+        }}
+    </style>
+    """, unsafe_allow_html=True)
 
 
 # API pública - Notificaciones compactas
