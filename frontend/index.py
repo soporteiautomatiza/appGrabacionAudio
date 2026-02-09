@@ -45,8 +45,6 @@ if "processed_audios" not in st.session_state:
     st.session_state.processed_audios = set()  # Audios ya procesados
 if "recordings" not in st.session_state:
     st.session_state.recordings = recorder.get_recordings_from_supabase()
-if "records" not in st.session_state:
-    st.session_state.recordings = recorder.get_recordings_from_supabase()
 if "selected_audio" not in st.session_state:
     st.session_state.selected_audio = None
 if "upload_key_counter" not in st.session_state:
@@ -59,6 +57,10 @@ if "delete_confirmation" not in st.session_state:
     st.session_state.delete_confirmation = {}  # Confirmacion de eliminacion
 if "transcription_cache" not in st.session_state:
     st.session_state.transcription_cache = {}  # Caché de transcripciones
+if "chat_history_limit" not in st.session_state:
+    st.session_state.chat_history_limit = 50  # Límite máximo de mensajes en chat
+if "opp_delete_confirmation" not in st.session_state:
+    st.session_state.opp_delete_confirmation = {}  # Confirmación de eliminación de oportunidades
 
 st.title(APP_NAME)
 
@@ -133,7 +135,10 @@ with col2:
                 st.markdown(f"**📌 {len(filtered_recordings)} resultado(s):**")
                 for recording in filtered_recordings:
                     display_name = recording.replace("_", " ").replace(".wav", "").replace(".mp3", "").replace(".m4a", "").replace(".webm", "").replace(".ogg", "").replace(".flac", "")
-                    is_transcribed = " ✓ Transcrito" if db_utils.get_transcription_by_filename(recording) else ""
+                    # Usar caché para evitar múltiples queries a Supabase
+                    if recording not in st.session_state.transcription_cache:
+                        st.session_state.transcription_cache[recording] = db_utils.get_transcription_by_filename(recording)
+                    is_transcribed = " ✓ Transcrito" if st.session_state.transcription_cache[recording] else ""
                     st.caption(f"🎵 {display_name}{is_transcribed}")
             else:
                 show_warning(f"No se encontraron audios con '{search_query}'")
@@ -148,7 +153,7 @@ with col2:
                 "Selecciona un audio para transcribir",
                 filtered_recordings,
                 format_func=lambda x: x.replace("_", " ").replace(".wav", "").replace(".mp3", "").replace(".m4a", "").replace(".webm", "").replace(".ogg", "").replace(".flac", "") + (
-                    " ✓ Transcrito" if db_utils.get_transcription_by_filename(x) else ""
+                    " ✓ Transcrito" if st.session_state.transcription_cache.get(x) or db_utils.get_transcription_by_filename(x) else ""
                 )
             )
             
@@ -397,11 +402,25 @@ if st.session_state.get("chat_enabled", False):
                 
                 with col_delete:
                     if st.button("🗑️ Eliminar", key=f"delete_{idx}", use_container_width=True):
-                        if opp_manager.delete_opportunity(opp['id'], selected_audio):
-                            show_success("Oportunidad eliminada de Supabase")
-                            st.rerun()
-                        else:
-                            show_error("Error al eliminar la oportunidad")
+                        st.session_state.opp_delete_confirmation[idx] = True
+                        st.rerun()
+                    
+                    # Mostrar confirmación si está pendiente
+                    if st.session_state.opp_delete_confirmation.get(idx):
+                        st.warning(f"⚠️ ¿Eliminar '{opp['keyword']}'?")
+                        col_yes, col_no = st.columns(2)
+                        with col_yes:
+                            if st.button("✓ Sí, eliminar", key=f"opp_confirm_yes_{idx}", use_container_width=True):
+                                if opp_manager.delete_opportunity(opp['id'], selected_audio):
+                                    show_success("Oportunidad eliminada de Supabase")
+                                    st.session_state.opp_delete_confirmation.pop(idx, None)
+                                    st.rerun()
+                                else:
+                                    show_error("Error al eliminar la oportunidad")
+                        with col_no:
+                            if st.button("✗ Cancelar", key=f"opp_confirm_no_{idx}", use_container_width=True):
+                                st.session_state.opp_delete_confirmation.pop(idx, None)
+                                st.rerun()
 
 # SECCIÓN DE CHAT
 
@@ -457,6 +476,12 @@ if st.session_state.get("chat_enabled", False):
                 keywords = st.session_state.get("keywords", {})
                 response = chat_model.call_model(user_input, st.session_state.contexto, keywords)
                 st.session_state.chat_history.append(f"🤖 **IA**: {response}")
+                
+                # Limitar historial a últimos N mensajes para no sobrecargar memoria
+                max_history = st.session_state.chat_history_limit
+                if len(st.session_state.chat_history) > max_history:
+                    st.session_state.chat_history = st.session_state.chat_history[-max_history:]
+                
                 st.rerun()
             except Exception as e:
                 show_error(f"Error al generar respuesta: {e}")
