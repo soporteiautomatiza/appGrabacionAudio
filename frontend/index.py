@@ -34,32 +34,6 @@ st.set_page_config(layout="wide", page_title=APP_NAME)
 # Cargar estilos CSS desde archivo
 st.markdown(styles.get_styles(), unsafe_allow_html=True)
 
-# Header moderno estilo Salesforce/Holded
-header_html = """
-<div style="
-    background: linear-gradient(135deg, #0052CC 0%, #0078D4 100%);
-    padding: 24px 40px;
-    margin: -80px -40px 30px -40px;
-    border-radius: 0 0 8px 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-">
-    <h1 style="
-        color: white;
-        margin: 0;
-        font-size: 28px;
-        font-weight: 600;
-        letter-spacing: -0.5px;
-    ">🎙️ Grabación & Análisis de Audio</h1>
-    <p style="
-        color: rgba(255, 255, 255, 0.85);
-        margin: 8px 0 0 0;
-        font-size: 14px;
-        font-weight: 400;
-    ">Transcribe, analiza y extrae oportunidades de tus grabaciones</p>
-</div>
-"""
-st.markdown(header_html, unsafe_allow_html=True)
-
 # Inicializar objetos
 recorder = AudioRecorder()
 transcriber_model = Transcriber()
@@ -93,7 +67,7 @@ col1, col2 = st.columns([1, 1])
 
 with col1:
     # GRABADORA DE AUDIO EN VIVO (nativa de Streamlit)
-    st.markdown('<h3 style="color: #0052CC; font-weight: 600; margin-bottom: 4px;">📱 Grabadora en vivo</h3>', unsafe_allow_html=True)
+    st.markdown('<h3 style="color: white; font-weight: 600; margin-bottom: 4px;">Grabadora en vivo</h3>', unsafe_allow_html=True)
     st.caption("Graba directamente desde tu micrófono")
     
     audio_data = st.audio_input("Presiona el botón para grabar:", key=f"audio_recorder_{st.session_state.record_key_counter}")
@@ -112,7 +86,7 @@ with col1:
                 st.session_state.record_key_counter += 1
     
     # Opción de subir archivo
-    st.markdown('<h3 style="color: #0052CC; font-weight: 600; margin-bottom: 4px; margin-top: 20px;">📁 Sube un archivo</h3>', unsafe_allow_html=True)
+    st.markdown('<h3 style="color: white; font-weight: 600; margin-bottom: 4px; margin-top: 20px;">Sube un archivo</h3>', unsafe_allow_html=True)
     uploaded_file = st.file_uploader(
         "Selecciona un archivo de audio",
         type=list(AUDIO_EXTENSIONS),
@@ -131,7 +105,7 @@ with col1:
                 st.session_state.upload_key_counter += 1
 
 with col2:
-    st.markdown('<h3 style="color: #0052CC; font-weight: 600; margin-bottom: 4px;">💾 Audios Guardados</h3>', unsafe_allow_html=True)
+    st.markdown('<h3 style="color: white; font-weight: 600; margin-bottom: 4px;">Audios Guardados</h3>', unsafe_allow_html=True)
     
     # Refresh de la lista de audios desde Supabase cada vez que se renderiza (para sincronizar)
     recordings = recorder.get_recordings_from_supabase()
