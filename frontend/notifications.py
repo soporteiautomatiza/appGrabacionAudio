@@ -4,68 +4,93 @@ Funciones centralizadas para mostrar notificaciones
 import streamlit as st
 
 
-def show_success(message: str):
+# Configuración de estilos por tipo de notificación
+NOTIFICATION_STYLES = {
+    "success": {"icon": "✓", "class": "notification-icon-success"},
+    "error": {"icon": "✕", "class": "notification-icon-error"},
+    "warning": {"icon": "⚠", "class": "notification-icon-warning"},
+    "info": {"icon": "ℹ", "class": "notification-icon-info"},
+}
+
+NOTIFICATION_EXPANDED_STYLES = {
+    "success": "notification-expanded-success",
+    "error": "notification-expanded-error",
+    "info": "notification-expanded-info",
+}
+
+
+def _show_notification(message: str, notification_type: str) -> None:
+    """
+    Función interna para mostrar notificaciones compactas con tooltip.
+    
+    Args:
+        message: Texto a mostrar
+        notification_type: Tipo de notificación ('success', 'error', 'warning', 'info')
+    """
+    style = NOTIFICATION_STYLES.get(notification_type)
+    if not style:
+        return
+    
+    st.markdown(f"""
+    <div class="notification-icon {style['class']}">
+        {style['icon']}
+        <span class="notification-tooltip">{message}</span>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+def _show_notification_expanded(message: str, notification_type: str) -> None:
+    """
+    Función interna para mostrar notificaciones expandidas (para debug).
+    
+    Args:
+        message: Texto a mostrar
+        notification_type: Tipo de notificación ('success', 'error', 'info')
+    """
+    style_class = NOTIFICATION_EXPANDED_STYLES.get(notification_type)
+    if not style_class:
+        return
+    
+    icon = NOTIFICATION_STYLES.get(notification_type, {}).get("icon", "•")
+    st.markdown(f"""
+    <div class="notification-expanded {style_class}">
+        {icon} {message}
+    </div>
+    """, unsafe_allow_html=True)
+
+
+# API pública - Notificaciones compactas
+def show_success(message: str) -> None:
     """Muestra un icono de éxito con tooltip con el mensaje"""
-    st.markdown(f"""
-    <div class="notification-icon notification-icon-success">
-        ✓
-        <span class="notification-tooltip">{message}</span>
-    </div>
-    """, unsafe_allow_html=True)
+    _show_notification(message, "success")
 
 
-def show_error(message: str):
+def show_error(message: str) -> None:
     """Muestra un icono de error con tooltip con el mensaje"""
-    st.markdown(f"""
-    <div class="notification-icon notification-icon-error">
-        ✕
-        <span class="notification-tooltip">{message}</span>
-    </div>
-    """, unsafe_allow_html=True)
+    _show_notification(message, "error")
 
 
-def show_warning(message: str):
+def show_warning(message: str) -> None:
     """Muestra un icono de advertencia con tooltip con el mensaje"""
-    st.markdown(f"""
-    <div class="notification-icon notification-icon-warning">
-        ⚠
-        <span class="notification-tooltip">{message}</span>
-    </div>
-    """, unsafe_allow_html=True)
+    _show_notification(message, "warning")
 
 
-def show_info(message: str):
+def show_info(message: str) -> None:
     """Muestra un icono de información con tooltip con el mensaje"""
-    st.markdown(f"""
-    <div class="notification-icon notification-icon-info">
-        ℹ
-        <span class="notification-tooltip">{message}</span>
-    </div>
-    """, unsafe_allow_html=True)
+    _show_notification(message, "info")
 
 
-def show_success_expanded(message: str):
+# API pública - Notificaciones expandidas (para debug)
+def show_success_expanded(message: str) -> None:
     """Muestra un mensaje de éxito visible completo (para debug)"""
-    st.markdown(f"""
-    <div class="notification-expanded notification-expanded-success">
-        ✓ {message}
-    </div>
-    """, unsafe_allow_html=True)
+    _show_notification_expanded(message, "success")
 
 
-def show_error_expanded(message: str):
+def show_error_expanded(message: str) -> None:
     """Muestra un mensaje de error visible completo (para debug)"""
-    st.markdown(f"""
-    <div class="notification-expanded notification-expanded-error">
-        ✕ {message}
-    </div>
-    """, unsafe_allow_html=True)
+    _show_notification_expanded(message, "error")
 
 
-def show_info_expanded(message: str):
+def show_info_expanded(message: str) -> None:
     """Muestra un mensaje de información visible completo (para debug)"""
-    st.markdown(f"""
-    <div class="notification-expanded notification-expanded-info">
-        ℹ {message}
-    </div>
-    """, unsafe_allow_html=True)
+    _show_notification_expanded(message, "info")
