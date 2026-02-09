@@ -10,13 +10,12 @@ def get_styles():
     .main {
         max-width: 1200px;
         margin: 0 auto;
-        padding: 20px 40px;
+        padding: 0 40px;
     }
     
     .stMainBlockContainer {
         max-width: 1200px;
         margin: 0 auto;
-        padding: 20px 0;
     }
     
     [data-testid="stAppViewContainer"] {
@@ -27,17 +26,6 @@ def get_styles():
         max-width: 1200px;
         margin: 0 auto;
         padding: 0 40px;
-    }
-    
-    /* Mejor espaciado en headers y sections */
-    h1, h2, h3 {
-        margin-top: 24px !important;
-        margin-bottom: 12px !important;
-    }
-    
-    /* Spacer después de dividers */
-    hr {
-        margin: 32px 0 !important;
     }
     
     /* Centrar input de chat */
