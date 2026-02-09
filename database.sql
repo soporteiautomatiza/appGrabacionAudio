@@ -13,14 +13,13 @@
 
 CREATE TABLE IF NOT EXISTS recordings (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    filename VARCHAR(255) NOT NULL UNIQUE,
-    filepath VARCHAR(500) NOT NULL,
+    filename TEXT NOT NULL,
+    filepath TEXT NOT NULL,
     transcription TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT now(),
+    updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT now(),
     
-    -- Índices para búsquedas rápidas
-    CONSTRAINT recordings_filename_not_empty CHECK (filename != ''),
-    CONSTRAINT recordings_filepath_not_empty CHECK (filepath != '')
+    CONSTRAINT recordings_pkey PRIMARY KEY (id)
 );
 
 -- Índices de performance
@@ -46,14 +45,14 @@ COMMENT ON COLUMN recordings.created_at IS 'Timestamp de cuando se subió el aud
 
 CREATE TABLE IF NOT EXISTS transcriptions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    recording_id UUID NOT NULL REFERENCES recordings(id) ON DELETE CASCADE,
+    recording_id UUID NOT NULL,
     content TEXT NOT NULL,
-    language VARCHAR(10) DEFAULT 'es',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    language TEXT DEFAULT 'es'::text,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
     
-    -- Constraints de integridad
-    CONSTRAINT transcriptions_content_not_empty CHECK (content != ''),
-    CONSTRAINT transcriptions_language_valid CHECK (language IN ('es', 'en', 'fr', 'de', 'pt', 'it'))
+    CONSTRAINT transcriptions_pkey PRIMARY KEY (id),
+    CONSTRAINT transcriptions_recording_id_fkey FOREIGN KEY (recording_id) REFERENCES recordings(id) ON DELETE CASCADE
 );
 
 -- Índices de performance
@@ -80,21 +79,20 @@ COMMENT ON COLUMN transcriptions.created_at IS 'Cuándo se transcribió el audio
 CREATE TABLE IF NOT EXISTS opportunities (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     recording_id UUID NOT NULL REFERENCES recordings(id) ON DELETE CASCADE,
-    title VARCHAR(255) NOT NULL,
+    title TEXT NOT NULL,
     description TEXT NOT NULL,
-    status VARCHAR(50) DEFAULT 'new',
-    priority VARCHAR(50) DEFAULT 'medium',
-    notes TEXT DEFAULT '',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    status TEXT DEFAULT 'Open',
+    priority TEXT DEFAULT 'Medium',
+    ticket_number INTEGER NOT NULL DEFAULT nextval('opportunities_ticket_number_seq'::regclass),
+    notes TEXT,
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT now(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     
-    -- Constraints de integridad (sin restricciones en status/priority para máxima flexibilidad)
-    CONSTRAINT opportunities_pk PRIMARY KEY (id),
+    -- Constraints de integridad
+    CONSTRAINT opportunities_pkey PRIMARY KEY (id),
     CONSTRAINT opportunities_recording_id_fkey FOREIGN KEY (recording_id) REFERENCES recordings(id) ON DELETE CASCADE,
     CONSTRAINT opportunities_title_not_empty CHECK (title != ''),
     CONSTRAINT opportunities_description_not_empty CHECK (description != '')
-    -- NOTE: status y priority sin CHECK constraint para permitir cualquier valor
-    -- Actualiza estos valores según tu aplicación
 );
 
 -- Índices de performance
@@ -316,13 +314,12 @@ RELACIONES:
 - recordings 1-to-many chat_history (CASCADE DELETE)
 
 ENUMS (SIN CONSTRAINTS - FLEXIBLES):
-- opportunities.status: Cualquier valor (ej: 'new', 'Open', 'won', 'in_progress', etc.)
-- opportunities.priority: Cualquier valor (ej: 'low', 'medium', 'high', 'critical', 'Low', 'High', etc.)
-- transcriptions.language: 'es' | 'en' | 'fr' | 'de' | 'pt' | 'it'
-- chat_history.role: 'user' | 'assistant'
+- opportunities.status: Cualquier valor (ej: 'Open', 'new', 'won', etc.)
+- opportunities.priority: Cualquier valor (ej: 'Medium', 'High', 'Low', etc.)
+- transcriptions.language: Cualquier valor (ej: 'es', 'en', 'fr', etc.)
 
-NOTA: status y priority NO tienen CHECK constraints para máxima flexibilidad.
-      Si necesitas validación, hazla en la aplicación (Python/Streamlit).
+NOTA: Sin CHECK constraints para máxima flexibilidad.
+      Validación recomendada en la aplicación (Python/Streamlit).
 
 VISTAS:
 - v_pending_opportunities: oportunidades sin resolver
