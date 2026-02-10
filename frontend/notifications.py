@@ -51,7 +51,7 @@ def _show_toast(message: str, notification_type: str, duration: int = 3) -> None
     import uuid
     toast_id = str(uuid.uuid4())
     
-    # CSS + HTML + JavaScript para toast interactivo
+    # CSS + HTML puro para toast sin JavaScript
     st.markdown(f"""
     <style>
         @keyframes slideInRight {{
@@ -66,11 +66,11 @@ def _show_toast(message: str, notification_type: str, duration: int = 3) -> None
         }}
         
         @keyframes fadeOut {{
-            from {{ 
+            0% {{ 
                 opacity: 1;
                 transform: translateX(0);
             }}
-            to {{ 
+            100% {{ 
                 opacity: 0;
                 transform: translateX(400px);
             }}
@@ -93,7 +93,7 @@ def _show_toast(message: str, notification_type: str, duration: int = 3) -> None
             max-width: 280px;
             word-wrap: break-word;
             font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;
-            animation: slideInRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            animation: slideInRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), fadeOut 0.3s ease-out 1.7s forwards;
             border: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
             align-items: center;
@@ -106,71 +106,21 @@ def _show_toast(message: str, notification_type: str, duration: int = 3) -> None
             align-items: center;
             gap: 10px;
             flex: 1;
+            min-width: 0;
         }}
         
-        .toast-close {{
-            background: none;
-            border: none;
-            color: {text};
-            cursor: pointer;
-            font-size: 18px;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 24px;
-            height: 24px;
-            opacity: 0.7;
-            transition: opacity 0.2s;
+        .toast-content span {{
+            font-size: 16px;
             flex-shrink: 0;
-        }}
-        
-        .toast-close:hover {{
-            opacity: 1;
-        }}
-        
-        .toast.fade-out {{
-            animation: fadeOut 0.3s ease-out forwards;
         }}
     </style>
     
-    <div class="toast" id="toast-{toast_id}">
+    <div class="toast">
         <div class="toast-content">
-            <span>{icon}</span> {message}
+            <span>{icon}</span> 
+            <span>{message}</span>
         </div>
-        <button class="toast-close" type="button" data-toast-id="toast-{toast_id}">✕</button>
     </div>
-    
-    <script>
-    (function() {{
-        function closeToast(toastId) {{
-            const toast = document.getElementById(toastId);
-            if (toast) {{
-                toast.classList.add('fade-out');
-                setTimeout(() => {{
-                    if (toast.parentNode) {{
-                        toast.parentNode.removeChild(toast);
-                    }}
-                }}, 300);
-            }}
-        }}
-        
-        // Attachar listeners a botones de cierre
-        const closeBtn = document.querySelector('[data-toast-id="toast-{toast_id}"]');
-        if (closeBtn) {{
-            closeBtn.addEventListener('click', function(e) {{
-                e.preventDefault();
-                e.stopPropagation();
-                closeToast('toast-{toast_id}');
-            }});
-        }}
-        
-        // Auto-cierre después de 2 segundos
-        setTimeout(() => {{
-            closeToast('toast-{toast_id}');
-        }}, 2000);
-    }})();
-    </script>
     """, unsafe_allow_html=True)
 
 
