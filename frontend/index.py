@@ -86,6 +86,9 @@ st.markdown(styles.get_styles(), unsafe_allow_html=True)
 # Renderizar efectos de fondo animados
 components.render_background_effects()
 
+# Hero principal
+components.render_header()
+
 # Inicializar objetos
 recorder = AudioRecorder()
 transcriber_model = Transcriber()
@@ -106,8 +109,8 @@ col_left, col_right = st.columns([4, 8])
 # ============================================================================
 with col_left:
     # ===== GRABADORA EN VIVO =====
-    st.subheader("Grabadora en vivo")
-    st.caption("Graba directamente desde tu micrófono")
+    components.render_section_title("Grabadora en vivo", icon="🎙️")
+    st.markdown('<p class="helper-text">Graba directamente desde tu micrófono y guarda tus momentos clave.</p>', unsafe_allow_html=True)
     
     audio_data = st.audio_input("", key=f"audio_recorder_{st.session_state.record_key_counter}", label_visibility="collapsed")
     
@@ -125,7 +128,7 @@ with col_left:
                 st.session_state.record_key_counter += 1
     
     # ===== SUBIR ARCHIVO DE AUDIO =====
-    st.subheader("Subir archivo de audio")
+    components.render_section_title("Subir archivo de audio", icon="⬆️")
     uploaded_file = st.file_uploader(
         "Selecciona un archivo de audio",
         type=list(AUDIO_EXTENSIONS),
@@ -143,7 +146,7 @@ with col_left:
                 # Reset el widget para que no se procese nuevamente
                 st.session_state.upload_key_counter += 1
     
-    st.caption("Formatos soportados: MP3, WAV, M4A")
+    st.markdown('<p class="helper-text">Formatos soportados: MP3, WAV, M4A</p>', unsafe_allow_html=True)
 
 # ============================================================================
 # PANEL DERECHO - Audios Guardados y Transcripción
@@ -304,11 +307,9 @@ with col_right:
                     transcribed_badge = components.render_badge("Transcrito", "transcribed") if is_transcribed else ""
                     
                     st.markdown(f'''
-                    <div class="glass-card-hover" style="padding: 12px; margin: 8px 0; border-radius: 12px; background: rgba(42, 45, 62, 0.5); border: 1px solid rgba(139, 92, 246, 0.1); cursor: pointer;">
-                        <div>
-                            <div style="font-weight: 600; margin-bottom: 4px;">{display_name} {transcribed_badge}</div>
-                            <div style="font-size: 11px; color: var(--muted-foreground);">Selecciona en la pestaña "Transcribir"</div>
-                        </div>
+                    <div class="recording-list-item">
+                        <div class="recording-list-item__title">{display_name} {transcribed_badge}</div>
+                        <div class="recording-list-item__subtitle">Selecciona el archivo desde la pestaña "Transcribir"</div>
                     </div>
                     ''', unsafe_allow_html=True)
                 
@@ -340,7 +341,7 @@ with col_right:
         
         # ===== TAB 3: GESTIÓN EN LOTE =====
         with tab3:
-            st.subheader("Eliminar múltiples audios")
+            components.render_section_title("Eliminar múltiples audios", icon="🗂️")
             
             audios_to_delete = st.multiselect(
                 "Audios a eliminar:",
@@ -380,8 +381,8 @@ st.markdown("")
 # SECCIÓN DE TRANSCRIPCIÓN
 
 if st.session_state.get("chat_enabled", False) and st.session_state.get("contexto"):
-    st.header("Transcripción del Audio")
-    st.caption(f"De: {st.session_state.get('selected_audio', 'audio')}")
+    components.render_section_title("Transcripción del audio", icon="📝")
+    st.markdown(f'<p class="helper-text">Archivo: {st.session_state.get("selected_audio", "audio")}</p>', unsafe_allow_html=True)
     
     # Mostrar transcripción en un contenedor
     with st.container(border=True):
@@ -389,8 +390,8 @@ if st.session_state.get("chat_enabled", False) and st.session_state.get("context
                     
     
     # SECCIÓN DE PALABRAS CLAVE
-    st.markdown('<h3 style="color: white;">Palabras Clave</h3>', unsafe_allow_html=True)
-    st.caption("Añade palabras clave para el análisis de oportunidades")
+    components.render_section_title("Palabras clave", icon="🏷️")
+    st.markdown('<p class="helper-text">Añade palabras clave para perfilar oportunidades dentro de la transcripción.</p>', unsafe_allow_html=True)
     
     col_kw1, col_kw2 = st.columns([2, 1])
     with col_kw1:
@@ -419,7 +420,7 @@ if st.session_state.get("chat_enabled", False) and st.session_state.get("context
     # Mostrar palabras clave
     keywords_dict = st.session_state.get("keywords", {})
     if keywords_dict:
-        st.markdown('<h4 style="color: white; margin-top: 20px; margin-bottom: 16px;">Palabras clave configuradas</h4>', unsafe_allow_html=True)
+        components.render_section_title("Palabras clave configuradas", icon="✅")
         
         # Mostrar palabras clave con botones de eliminar al lado
         for keyword in list(keywords_dict.keys()):
@@ -427,7 +428,7 @@ if st.session_state.get("chat_enabled", False) and st.session_state.get("context
             
             with col_badge:
                 # Badge HTML con palabra
-                badge_html = f'<div style="display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #0052CC 0%, #003d99 100%); padding: 8px 12px; border-radius: 6px; color: white; font-weight: 500; font-size: 14px;">{keyword}</div>'
+                badge_html = f'<div class="keyword-chip">{keyword}</div>'
                 st.markdown(badge_html, unsafe_allow_html=True)
             
             with col_delete:
@@ -470,7 +471,7 @@ if st.session_state.get("chat_enabled", False):
     opportunities = opp_manager.load_opportunities(selected_audio)
     
     if opportunities:
-        st.markdown('<h2 style="color: white;">Tickets de Oportunidades de Negocio</h2>', unsafe_allow_html=True)
+        components.render_section_title("Tickets de oportunidades de negocio", icon="💼", count=len(opportunities))
         
         for idx, opp in enumerate(opportunities):
             # Mostrar número de ocurrencia si hay múltiples
@@ -486,10 +487,10 @@ if st.session_state.get("chat_enabled", False):
                     # Resaltar la palabra clave en azul dentro del contexto
                     highlighted_context = opp['full_context'].replace(
                         opp['keyword'],
-                        f'<span style="color: #0052CC; font-weight: 600;">{opp["keyword"]}</span>'
+                        f'<span class="keyword-highlight">{opp["keyword"]}</span>'
                     )
                     st.markdown(f"""
-                    <div class="notification-container notification-info">
+                    <div class="context-panel">
                         {highlighted_context}
                     </div>
                     """, unsafe_allow_html=True)
@@ -575,8 +576,8 @@ st.markdown("")
 # SECCIÓN DE CHAT
 
 if st.session_state.get("chat_enabled", False):
-    st.header("Asistente IA para Análisis de Reuniones")
-    st.caption(f"Conversando sobre: {st.session_state.get('selected_audio', 'audio')}")
+    components.render_section_title("Asistente IA para análisis de reuniones", icon="🤖")
+    st.markdown(f'<p class="helper-text">Conversando sobre: {st.session_state.get("selected_audio", "audio")}</p>', unsafe_allow_html=True)
     
     if st.session_state.get("keywords"):
         keywords_list = list(st.session_state.get("keywords", {}).keys())
