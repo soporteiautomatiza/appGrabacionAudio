@@ -297,8 +297,6 @@ with col_right:
             
             # Mostrar resultados
             if filtered_recordings:
-                st.markdown(f'''<div style="max-height: 500px; overflow-y: auto; margin-top: 12px;">''', unsafe_allow_html=True)
-                
                 for idx, recording in enumerate(paginated_recordings):
                     display_name = format_recording_name(recording)
                     is_transcribed = is_audio_transcribed(recording, db_utils)
@@ -307,9 +305,10 @@ with col_right:
                     # ID único para el expander
                     rec_id = f"rec_{start_idx + idx}"
                     
-                    # Mostrar la tarjeta con diseño original
-                    with st.expander(f"{display_name} {transcribed_badge}", expanded=False):
-                        st.caption("Haz clic aquí para renombrar esta grabación")
+                    # Expander que se ve como tarjeta
+                    with st.expander(f"▸ {display_name} {transcribed_badge}", expanded=False):
+                        st.markdown("---")
+                        st.markdown("**✏️ Renombrar grabación**")
                         
                         # Formulario para renombrar
                         with st.form(key=f"rename_form_{rec_id}"):
@@ -341,9 +340,7 @@ with col_right:
                                 else:
                                     show_warning("El nuevo nombre es igual al actual")
                         
-                        st.caption(f"📁 Archivo: {recording}")
-                
-                st.markdown('</div>', unsafe_allow_html=True)
+                        st.caption(f"📁 Archivo original: {recording}")
                 
                 # Controles de paginación (solo si hay más de 1 página)
                 if total_pages > 1:
