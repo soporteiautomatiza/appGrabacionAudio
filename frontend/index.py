@@ -575,6 +575,8 @@ st.markdown("")
 # SECCIÓN DE CHAT
 
 if st.session_state.get("chat_enabled", False):
+    st.markdown('<div class="glass-card" style="padding: 24px; margin: 20px 0;">', unsafe_allow_html=True)
+    
     st.header("Asistente IA para Análisis de Reuniones")
     st.caption(f"Conversando sobre: {st.session_state.get('selected_audio', 'audio')}")
     
@@ -639,6 +641,8 @@ if st.session_state.get("chat_enabled", False):
                 st.rerun()
             except Exception as e:
                 show_error(f"Error al generar respuesta: {e}")
+    
+    st.markdown('</div>', unsafe_allow_html=True)
 else:
     show_info_expanded("Carga un audio y transcríbelo para habilitar el chat.")
 
