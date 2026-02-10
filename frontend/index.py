@@ -67,11 +67,32 @@ st.set_page_config(layout="wide", page_title=APP_NAME)
 # Cargar estilos CSS desde archivo
 st.markdown(styles.get_styles(), unsafe_allow_html=True)
 
-# Inicializar objetos
-recorder = AudioRecorder()
-transcriber_model = Transcriber()
-chat_model = Model()
-opp_manager = OpportunitiesManager()
+# Inicializar objetos CON CACHE para no recargar cada renderizado
+@st.cache_resource
+def get_recorder():
+    return AudioRecorder()
+
+@st.cache_resource
+def get_transcriber():
+    return Transcriber()
+
+@st.cache_resource
+def get_model():
+    return Model()
+
+@st.cache_resource
+def get_opp_manager():
+    return OpportunitiesManager()
+
+# Cachear lista de audios con timeout de 30 segundos
+@st.cache_data(ttl=30)
+def get_cached_recordings():
+    return AudioRecorder().get_recordings_from_supabase()
+
+recorder = get_recorder()
+transcriber_model = get_transcriber()
+chat_model = get_model()
+opp_manager = get_opp_manager()
 
 # Inicializar estado de sesión de forma centralizada
 initialize_session_state(recorder)
@@ -126,12 +147,20 @@ with col1:
 with col2:
     st.markdown('<h3 style="color: white;">Audios Guardados</h3>', unsafe_allow_html=True)
     
-    # Refresh de la lista de audios desde Supabase cada vez que se renderiza (para sincronizar)
-    recordings = recorder.get_recordings_from_supabase()
+    # Usar versión en CACHE de los audios (se actualiza cada 30s)
+    recordings = get_cached_recordings()
     st.session_state.recordings = recordings
     
     if recordings:
         show_info_expanded(f"Total: {len(recordings)} audio(s)")
+        
+        # Botón para forzar actualización (si se demora)
+        col_refresh = st.columns(1)
+        with col_refresh[0]:
+            if st.button("🔄 Actualizar lista (si no aparece un audio reciente)", use_container_width=False):
+                # Invalidar caché de audios
+                get_cached_recordings.clear()
+                st.rerun()  # Recargar UI
         
         # BÚSQUEDA Y FILTRO DE AUDIOS EN TIEMPO REAL
         search_query = st.text_input(
