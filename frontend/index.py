@@ -106,17 +106,8 @@ col_left, col_right = st.columns([4, 8], gap="large")
 # ============================================================================
 with col_left:
     # ===== GRABADORA EN VIVO =====
-    st.markdown('''
-    <div class="glass-card" style="padding: 20px; margin-bottom: 24px;">
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-            <div style="font-size: 24px;">🎤</div>
-            <div>
-                <h3 style="margin: 0; color: var(--foreground); font-size: 18px; font-weight: 600;">Grabadora en vivo</h3>
-                <p style="margin: 0; color: var(--muted-foreground); font-size: 13px;">Graba directamente desde tu micrófono</p>
-            </div>
-        </div>
-    </div>
-    ''', unsafe_allow_html=True)
+    st.subheader("Grabadora en vivo")
+    st.caption("Graba directamente desde tu micrófono")
     
     audio_data = st.audio_input("", key=f"audio_recorder_{st.session_state.record_key_counter}", label_visibility="collapsed")
     
@@ -133,27 +124,17 @@ with col_left:
                 # Reset el widget para que no se procese nuevamente
                 st.session_state.record_key_counter += 1
     
-    st.markdown("<div style='margin-top: 32px;'></div>", unsafe_allow_html=True)
+    st.markdown("")
     
     # ===== SUBIR ARCHIVO DE AUDIO =====
-    st.markdown('''
-    <div class="glass-card" style="padding: 20px; margin-bottom: 24px;">
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-            <div style="font-size: 24px;">📄</div>
-            <div>
-                <h3 style="margin: 0; color: var(--foreground); font-size: 18px; font-weight: 600;">Subir archivo de audio</h3>
-                <p style="margin: 0; color: var(--muted-foreground); font-size: 13px;">Formatos soportados: MP3, WAV, M4A</p>
-            </div>
-        </div>
-    </div>
-    ''', unsafe_allow_html=True)
-    
+    st.subheader("Subir archivo de audio")
     uploaded_file = st.file_uploader(
         "Selecciona un archivo de audio",
         type=list(AUDIO_EXTENSIONS),
-        key=f"audio_uploader_{st.session_state.upload_key_counter}",
-        label_visibility="collapsed"
+        key=f"audio_uploader_{st.session_state.upload_key_counter}"
     )
+    
+    st.caption("Formatos soportados: MP3, WAV, M4A")
     
     if uploaded_file is not None:
         audio_bytes = uploaded_file.read()
@@ -170,9 +151,9 @@ with col_left:
 # PANEL DERECHO - Audios Guardados y Transcripción
 # ============================================================================
 with col_right:
-    # Header del panel derecho
+    # Panel unificado con glass-card
     st.markdown('''
-    <div style="margin-bottom: 24px;">
+    <div class="glass-card" style="padding: 24px; margin-bottom: 20px;">
         <h2 style="margin: 0 0 8px 0; color: var(--foreground); font-size: 24px; font-weight: 700;">Gestión de Audios</h2>
         <p style="margin: 0; color: var(--muted-foreground); font-size: 14px;">Transcribe, busca y administra tus grabaciones</p>
     </div>
@@ -183,6 +164,9 @@ with col_right:
     st.session_state.recordings = recordings
     
     if recordings:
+        # Contenedor para las tabs con estilo de panel
+        st.markdown('<div class="glass-card" style="padding: 20px;">', unsafe_allow_html=True)
+        
         # Tabs para diferentes secciones
         tab1, tab2, tab3 = st.tabs(["Transcribir", "Audios guardados", "Gestión en lote"])
         
@@ -414,6 +398,9 @@ with col_right:
                                 st.rerun()
     else:
         st.info("No hay grabaciones guardadas. Comienza grabando o subiendo audio.")
+    
+    # Cerrar glass-card container de tabs
+    st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown("")
 st.markdown("")
