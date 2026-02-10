@@ -273,6 +273,8 @@ with col2:
                                     st.session_state.selected_audio = None
                                     st.session_state.delete_confirmation.pop(selected_audio, None)
                                     show_success_expanded(f"✓ '{selected_audio}' eliminado")
+                                    # Invalidar caché de audios para mostrar lista actualizada
+                                    get_cached_recordings.clear()
                                     st.rerun()  # ACTUALIZAR UI inmediatamente
                         with col_no:
                             if st.button("✗ Cancelar", key=f"confirm_no_{selected_audio}"):
@@ -314,6 +316,8 @@ with col2:
                             
                             if deleted_count > 0:
                                 show_success_expanded(f"✓ {deleted_count} audio(s) eliminado(s) - Actualización instantánea")
+                                # Invalidar caché de audios para mostrar lista actualizada
+                                get_cached_recordings.clear()
                                 st.rerun()  # ACTUALIZAR UI inmediatamente
                 
                 with col_cancel:
