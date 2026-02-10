@@ -448,74 +448,48 @@ if st.session_state.get("chat_enabled", False) and st.session_state.get("context
             else:
                 show_error_expanded("Ingresa una palabra clave")
     
-    # Mostrar palabras clave con diseño mejorado
+    # Mostrar palabras clave
     keywords_dict = st.session_state.get("keywords", {})
     if keywords_dict:
-        st.markdown('''
-        <div style="padding: 16px; margin-top: 16px; background: rgba(42, 45, 62, 0.4); border: 1px solid rgba(139, 92, 246, 0.15); border-radius: 12px;">
-            <h4 style="margin: 0 0 12px 0; color: var(--foreground); font-size: 16px; font-weight: 600;">Palabras configuradas</h4>
-        </div>
-        ''', unsafe_allow_html=True)
+        st.markdown('<h4 style="color: white; margin-top: 20px; margin-bottom: 16px;">Palabras clave configuradas</h4>', unsafe_allow_html=True)
         
-        st.markdown("")
-        
-        # Mostrar palabras clave en grid
-        cols = st.columns(2)
-        for idx, keyword in enumerate(list(keywords_dict.keys())):
-            with cols[idx % 2]:
-                col_badge, col_delete = st.columns([4, 1])
-                
-                with col_badge:
-                    # Badge moderno con gradiente
-                    badge_html = f'''
-                    <div style="
-                        display: inline-flex; 
-                        align-items: center; 
-                        width: 100%;
-                        background: linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(139, 92, 246, 0.2)); 
-                        padding: 10px 14px; 
-                        border-radius: 8px; 
-                        color: var(--foreground); 
-                        font-weight: 500; 
-                        font-size: 14px;
-                        border: 1px solid rgba(139, 92, 246, 0.3);
-                        margin-bottom: 8px;
-                    ">
-                        <span style="margin-right: 6px;">🔑</span> {keyword}
-                    </div>
-                    '''
-                    st.markdown(badge_html, unsafe_allow_html=True)
-                
-                with col_delete:
-                    if st.button("✕", key=f"del_{keyword}", use_container_width=True, help="Eliminar"):
-                        delete_keyword_local(keyword)
-                        st.rerun()
+        # Mostrar palabras clave con botones de eliminar al lado
+        for keyword in list(keywords_dict.keys()):
+            col_badge, col_delete = st.columns([4, 1])
+            
+            with col_badge:
+                # Badge HTML con palabra
+                badge_html = f'<div style="display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #0052CC 0%, #003d99 100%); padding: 8px 12px; border-radius: 6px; color: white; font-weight: 500; font-size: 14px;">{keyword}</div>'
+                st.markdown(badge_html, unsafe_allow_html=True)
+            
+            with col_delete:
+                if st.button("✕", key=f"del_{keyword}", use_container_width=True, help="Eliminar"):
+                    delete_keyword_local(keyword)  # Actualización local instantánea
+                    st.rerun()  # ACTUALIZAR UI inmediatamente
         
         # Separador visual
         st.markdown("")
         
-        # Botón para generar oportunidades con diseño mejorado
-        col_spacer, col_btn, col_spacer2 = st.columns([1, 3, 1])
-        with col_btn:
-            if st.button("🎯 Analizar y Generar Oportunidades", use_container_width=True, type="primary"):
-                with st.spinner("Analizando transcripción..."):
-                    keywords_list = list(st.session_state.keywords.keys())
-                    opportunities = opp_manager.extract_opportunities(
-                        st.session_state.contexto,
-                        keywords_list
-                    )
-                    
-                    saved_count = 0
-                    for opp in opportunities:
-                        opp_manager.save_opportunity(opp, st.session_state.selected_audio)
-                        saved_count += 1
-                    
-                    if saved_count > 0:
-                        show_success_expanded(f"{saved_count} ticket(s) de oportunidad generado(s)")
-                        add_debug_event(f"Generados {saved_count} ticket(s) de oportunidad", "success")
-                        st.session_state.show_opportunities = True
-                    else:
-                        show_warning_expanded("No se encontraron oportunidades con las palabras clave")
+        # Botón para generar oportunidades
+        if st.button("Analizar y Generar Tickets de Oportunidades", use_container_width=True, type="primary"):
+            with st.spinner("Analizando transcripción..."):
+                keywords_list = list(st.session_state.keywords.keys())
+                opportunities = opp_manager.extract_opportunities(
+                    st.session_state.contexto,
+                    keywords_list
+                )
+                
+                saved_count = 0
+                for opp in opportunities:
+                    opp_manager.save_opportunity(opp, st.session_state.selected_audio)
+                    saved_count += 1
+                
+                if saved_count > 0:
+                    show_success_expanded(f"{saved_count} ticket(s) de oportunidad generado(s)")
+                    add_debug_event(f"Generados {saved_count} ticket(s) de oportunidad", "success")
+                    st.session_state.show_opportunities = True
+                else:
+                    show_warning_expanded("No se encontraron oportunidades con las palabras clave")
 
 st.markdown("")
 st.markdown("")
