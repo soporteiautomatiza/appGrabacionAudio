@@ -7,10 +7,10 @@ import streamlit as st
 
 # Configuración de colores por tipo
 TOAST_COLORS = {
-    "success": {"bg": "#10b981", "text": "white", "icon": "✓"},
-    "error": {"bg": "#ef4444", "text": "white", "icon": "✕"},
-    "warning": {"bg": "#f59e0b", "text": "white", "icon": "⚠"},
-    "info": {"bg": "#3b82f6", "text": "white", "icon": "ℹ"},
+    "success": {"bg": "#1f2937", "text": "#10b981", "icon": "✓"},    # Fondo gris oscuro, texto verde
+    "error": {"bg": "#1f2937", "text": "#ef4444", "icon": "✕"},       # Fondo gris oscuro, texto rojo
+    "warning": {"bg": "#1f2937", "text": "#f59e0b", "icon": "⚠"},     # Fondo gris oscuro, texto amarillo
+    "info": {"bg": "#1f2937", "text": "#3b82f6", "icon": "ℹ"},        # Fondo gris oscuro, texto azul
 }
 
 
@@ -75,9 +75,10 @@ def _show_toast(message: str, notification_type: str, duration: int = 3) -> None
             color: {text};
             padding: 16px 20px;
             border-radius: 8px;
+            border-left: 4px solid {text};
             font-weight: 600;
             font-size: 15px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             z-index: 99999;
             max-width: 300px;
             word-wrap: break-word;
