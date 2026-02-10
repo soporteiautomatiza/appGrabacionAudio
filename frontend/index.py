@@ -138,14 +138,14 @@ with col1:
                 st.session_state.upload_key_counter += 1
 
 with col2:
-    st.markdown('<h3 style="color: white;">🎵 Audios Guardados</h3>', unsafe_allow_html=True)
+    st.markdown('<h3 style="color: white; font-size: 1.8rem; margin-bottom: 0.5rem;">🎵 Audios Guardados</h3>', unsafe_allow_html=True)
     
     # Refresh de la lista de audios desde Supabase cada vez que se renderiza (para sincronizar)
     recordings = recorder.get_recordings_from_supabase()
     st.session_state.recordings = recordings
     
     if recordings:
-        st.markdown(f"<p style='color: #888; font-size: 0.9rem;'>{len(recordings)} archivo(s)</p>", unsafe_allow_html=True)
+        st.markdown(f"<p style='color: #64748b; font-size: 0.9rem; margin-bottom: 1rem;'>{len(recordings)} archivo(s)</p>", unsafe_allow_html=True)
         
         # BÚSQUEDA Y FILTRO DE AUDIOS EN TIEMPO REAL
         search_query = st.text_input(
@@ -169,36 +169,53 @@ with col2:
             for idx, recording in enumerate(filtered_recordings):
                 is_transcribed = is_audio_transcribed(recording, db_utils)
                 display_name = format_recording_name(recording)
+                file_type = recording.split('.')[-1].upper()
+                status = "Transcrito ✓" if is_transcribed else "Sin transcribir"
+                status_color = "#10b981" if is_transcribed else "#f97316"
                 
-                # Tarjeta de audio con diseño mejorado
+                # Tarjeta de audio con diseño ultra moderno
                 card_html = f"""
                 <div style="
-                    background: rgba(30, 41, 56, 0.8);
-                    border: 1px solid rgba(99, 102, 241, 0.3);
-                    border-radius: 12px;
-                    padding: 16px;
-                    margin-bottom: 12px;
-                    transition: all 0.3s ease;
+                    background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 56, 0.95) 100%);
+                    border: 1px solid rgba(148, 163, 184, 0.1);
+                    border-radius: 16px;
+                    padding: 18px 20px;
+                    margin-bottom: 14px;
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
+                    backdrop-filter: blur(10px);
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), inset 0 1px 1px rgba(255, 255, 255, 0.05);
+                "
+                onmouseover="
+                    this.style.background = 'linear-gradient(135deg, rgba(30, 41, 56, 0.95) 0%, rgba(45, 56, 71, 1) 100%)';
+                    this.style.borderColor = 'rgba(99, 102, 241, 0.4)';
+                    this.style.boxShadow = '0 8px 12px rgba(99, 102, 241, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.08)';
+                    this.style.transform = 'translateY(-2px)';
+                "
+                onmouseout="
+                    this.style.background = 'linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 56, 0.95) 100%)';
+                    this.style.borderColor = 'rgba(148, 163, 184, 0.1)';
+                    this.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1), inset 0 1px 1px rgba(255, 255, 255, 0.05)';
+                    this.style.transform = 'translateY(0)';
                 ">
-                    <div style="flex-grow: 1;">
-                        <div style="color: white; font-weight: 500; margin-bottom: 4px;">
+                    <div style="flex-grow: 1; min-width: 0;">
+                        <div style="color: #f1f5f9; font-weight: 600; font-size: 1rem; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                             {display_name}
                         </div>
-                        <div style="color: #888; font-size: 0.85rem;">
-                            {recording.split('.')[-1].upper()} • {"Transcrito ✓" if is_transcribed else "Sin transcribir"}
+                        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                            <span style="color: #94a3b8; font-size: 0.85rem;">{file_type}</span>
+                            <span style="width: 1px; height: 16px; background: rgba(148, 163, 184, 0.2);"></span>
+                            <span style="color: {status_color}; font-size: 0.85rem; font-weight: 500;">{status}</span>
                         </div>
-                    </div>
-                    <div style="display: flex; gap: 8px; align-items: center;">
                     </div>
                 </div>
                 """
                 st.markdown(card_html, unsafe_allow_html=True)
                 
                 # Botones en fila debajo de la tarjeta
-                col_play, col_trans, col_copy, col_delete = st.columns([1, 1, 1, 1], gap="small")
+                col_play, col_trans, col_delete = st.columns([1, 1, 1], gap="small")
                 
                 with col_play:
                     if st.button("▶ Play", key=f"play_{idx}_{recording}", use_container_width=True):
@@ -231,15 +248,6 @@ with col2:
                             except Exception as e:
                                 show_error_expanded(f"Error al transcribir: {e}")
                 
-                with col_copy:
-                    if st.button("📋 Copiar", key=f"copy_{idx}_{recording}", use_container_width=True):
-                        import pyperclip
-                        try:
-                            pyperclip.copy(recording)
-                            show_success_expanded("✓ Nombre copiado")
-                        except:
-                            st.info("Nombre: " + recording)
-                
                 with col_delete:
                     if st.button("🗑 Eliminar", key=f"delete_{idx}_{recording}", use_container_width=True):
                         st.session_state.delete_confirmation[recording] = True
@@ -264,6 +272,8 @@ with col2:
                         if st.button("✗ Cancelar", key=f"confirm_no_{idx}_{recording}"):
                             st.session_state.delete_confirmation.pop(recording, None)
                             st.rerun()
+                
+                st.markdown("")
         else:
             show_warning_expanded(f"No se encontraron audios con '{search_query}'")
     else:
