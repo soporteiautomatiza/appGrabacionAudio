@@ -20,8 +20,7 @@ import styles
 from notifications import (
     show_success, show_error, show_warning, show_info,
     show_success_expanded, show_error_expanded, show_info_expanded, show_warning_expanded,
-    show_success_debug, show_error_debug, show_info_debug,
-    show_delete_confirmation_buttons
+    show_success_debug, show_error_debug, show_info_debug
 )
 from utils import process_audio_file, delete_audio
 from performance import get_transcription_cached, is_audio_transcribed, update_opportunity_local, delete_opportunity_local, delete_keyword_local, delete_recording_local, init_optimization_state
@@ -221,30 +220,29 @@ with col2:
                                 show_error_expanded(f"Error al transcribir: {e}")
                 
                 with col_delete:
-                    if st.button("🗑️ Eliminar", key=f"delete_{selected_audio}"):
+                    if st.button("Eliminar", key=f"delete_{selected_audio}"):
+                        # Pedir confirmación
                         st.session_state.delete_confirmation[selected_audio] = True
                     
-                    # Mostrar modal de confirmación si está pendiente
+                    # Mostrar confirmación si está pendiente
                     if st.session_state.delete_confirmation.get(selected_audio):
-                        confirmed, cancelled = show_delete_confirmation_buttons(
-                            selected_audio,
-                            item_type="audio",
-                            key_prefix=f"audio_{selected_audio}"
-                        )
-                        
-                        if confirmed:
-                            if delete_audio(selected_audio, recorder, db_utils):
-                                delete_recording_local(selected_audio)
-                                st.session_state.chat_enabled = False
-                                st.session_state.loaded_audio = None
-                                st.session_state.selected_audio = None
+                        st.warning(f"⚠️ ¿Eliminar '{selected_audio}'?")
+                        col_yes, col_no = st.columns(2)
+                        with col_yes:
+                            if st.button("✓ Sí, eliminar", key=f"confirm_yes_{selected_audio}"):
+                                if delete_audio(selected_audio, recorder, db_utils):
+                                    # Actualizar localmente SIN st.rerun() (100ms en lugar de 2s)
+                                    delete_recording_local(selected_audio)
+                                    st.session_state.chat_enabled = False
+                                    st.session_state.loaded_audio = None
+                                    st.session_state.selected_audio = None
+                                    st.session_state.delete_confirmation.pop(selected_audio, None)
+                                    show_success_expanded(f"✓ '{selected_audio}' eliminado")
+                                    st.rerun()  # ACTUALIZAR UI inmediatamente
+                        with col_no:
+                            if st.button("✗ Cancelar", key=f"confirm_no_{selected_audio}"):
                                 st.session_state.delete_confirmation.pop(selected_audio, None)
-                                show_success_expanded(f"✓ '{selected_audio}' eliminado")
-                                st.rerun()
-                        
-                        if cancelled:
-                            st.session_state.delete_confirmation.pop(selected_audio, None)
-                            st.rerun()
+                                st.rerun()  # ACTUALIZAR UI inmediatamente
         
         with tab2:
             st.subheader("Eliminar múltiples audios")
@@ -462,27 +460,25 @@ if st.session_state.get("chat_enabled", False):
                             st.toast("⚠️ Error al guardar")
                 
                 with col_delete:
-                    if st.button("🗑️ Eliminar", key=f"delete_{idx}", use_container_width=True):
+                    if st.button("Eliminar", key=f"delete_{idx}", use_container_width=True):
                         st.session_state.opp_delete_confirmation[idx] = True
                     
-                    # Mostrar modal de confirmación si está pendiente
+                    # Mostrar confirmación si está pendiente
                     if st.session_state.opp_delete_confirmation.get(idx):
-                        confirmed, cancelled = show_delete_confirmation_buttons(
-                            opp['keyword'],
-                            item_type="ticket",
-                            key_prefix=f"opp_{idx}"
-                        )
-                        
-                        if confirmed:
-                            if opp_manager.delete_opportunity(opp['id']):
-                                delete_opportunity_local(idx)
+                        st.warning(f"⚠️ ¿Eliminar '{opp['keyword']}'?")
+                        col_yes, col_no = st.columns(2)
+                        with col_yes:
+                            if st.button("✓ Sí, eliminar", key=f"opp_confirm_yes_{idx}", use_container_width=True):
+                                if opp_manager.delete_opportunity(opp['id']):
+                                    # Actualización local instantánea
+                                    delete_opportunity_local(idx)
+                                    st.session_state.opp_delete_confirmation.pop(idx, None)
+                                    show_success_expanded("✓ Oportunidad eliminada - Actualización instantánea")
+                                    st.rerun()  # ACTUALIZAR UI inmediatamente
+                        with col_no:
+                            if st.button("✗ Cancelar", key=f"opp_confirm_no_{idx}", use_container_width=True):
                                 st.session_state.opp_delete_confirmation.pop(idx, None)
-                                show_success_expanded("✓ Ticket eliminado")
-                                st.rerun()
-                        
-                        if cancelled:
-                            st.session_state.opp_delete_confirmation.pop(idx, None)
-                            st.rerun()
+                                st.rerun()  # ACTUALIZAR UI inmediatamente
 
 st.markdown("")
 st.markdown("")
