@@ -196,14 +196,15 @@ with col_right:
                         st.session_state.contexto = None
                         st.session_state.keywords = {}
                 
-                col_play, col_transcribe, col_delete = st.columns([1, 1, 1])
+                # Mostrar reproductor de audio
+                audio_path = recorder.get_recording_path(selected_audio)
+                extension = selected_audio.split('.')[-1]
+                with open(audio_path, "rb") as f:
+                    st.audio(f.read(), format=f"audio/{extension}")
                 
-                with col_play:
-                    if st.button("Reproducir", use_container_width=True):
-                        audio_path = recorder.get_recording_path(selected_audio)
-                        extension = selected_audio.split('.')[-1]
-                        with open(audio_path, "rb") as f:
-                            st.audio(f.read(), format=f"audio/{extension}")
+                st.markdown("")  # Espaciado
+                
+                col_transcribe, col_delete = st.columns([1, 1])
                 
                 with col_transcribe:
                     if st.button("Transcribir", use_container_width=True):
