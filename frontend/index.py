@@ -633,10 +633,10 @@ with st.expander("🔧 DEBUG - Estado de Supabase"):
             message = event.get("message", "")
             
             if event_type == "success":
-                st.success(f"[{time}] ✓ {message}", icon="✓")
+                st.success(f"[{time}] ✓ {message}")
             elif event_type == "error":
-                st.error(f"[{time}] ✗ {message}", icon="✗")
+                st.error(f"[{time}] ✗ {message}")
             else:
-                st.info(f"[{time}] ℹ {message}", icon="ℹ")
+                st.info(f"[{time}] ℹ {message}")
     else:
         st.write("Sin eventos registrados aún")
