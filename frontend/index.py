@@ -380,53 +380,21 @@ st.markdown("")
 # SECCIÓN DE TRANSCRIPCIÓN
 
 if st.session_state.get("chat_enabled", False) and st.session_state.get("contexto"):
-    # Header moderno con glass effect
-    st.markdown(f'''
-    <div class="glass-card" style="padding: 20px; margin-bottom: 20px;">
-        <h2 style="margin: 0 0 8px 0; color: var(--foreground); font-size: 24px; font-weight: 600;">Transcripción del Audio</h2>
-        <p style="margin: 0; color: var(--muted-foreground); font-size: 14px;">De: {st.session_state.get('selected_audio', 'audio')}</p>
-    </div>
-    ''', unsafe_allow_html=True)
+    st.header("Transcripción del Audio")
+    st.caption(f"De: {st.session_state.get('selected_audio', 'audio')}")
     
-    # Mostrar transcripción con diseño mejorado
-    st.markdown('''
-    <style>
-        .transcription-box textarea {
-            background: rgba(42, 45, 62, 0.6) !important;
-            border: 1px solid rgba(139, 92, 246, 0.2) !important;
-            border-radius: 12px !important;
-            color: var(--foreground) !important;
-            font-size: 14px !important;
-            line-height: 1.6 !important;
-            padding: 16px !important;
-        }
-        .transcription-box textarea:focus {
-            border-color: rgba(139, 92, 246, 0.4) !important;
-            box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.1) !important;
-        }
-    </style>
-    ''', unsafe_allow_html=True)
-    
-    with st.container():
-        st.markdown('<div class="transcription-box">', unsafe_allow_html=True)
+    # Mostrar transcripción en un contenedor
+    with st.container(border=True):
         st.text_area("", st.session_state.contexto, height=200, disabled=True, label_visibility="collapsed")
-        st.markdown('</div>', unsafe_allow_html=True)
+                    
     
-    st.markdown("")
+    # SECCIÓN DE PALABRAS CLAVE
+    st.markdown('<h3 style="color: white;">Palabras Clave</h3>', unsafe_allow_html=True)
+    st.caption("Añade palabras clave para el análisis de oportunidades")
     
-    # SECCIÓN DE PALABRAS CLAVE con diseño mejorado
-    st.markdown('''
-    <div class="glass-card" style="padding: 20px; margin-top: 24px;">
-        <h3 style="margin: 0 0 8px 0; color: var(--foreground); font-size: 20px; font-weight: 600;">Palabras Clave</h3>
-        <p style="margin: 0 0 16px 0; color: var(--muted-foreground); font-size: 13px;">Añade palabras clave para el análisis de oportunidades</p>
-    </div>
-    ''', unsafe_allow_html=True)
-    
-    st.markdown("")
-    
-    col_kw1, col_kw2 = st.columns([3, 1])
+    col_kw1, col_kw2 = st.columns([2, 1])
     with col_kw1:
-        new_keyword = st.text_input("", placeholder="Ej: presupuesto, contrato, propuesta...", label_visibility="collapsed", key="keyword_input")
+        new_keyword = st.text_input("Palabra clave:", placeholder="Ej: presupuesto", label_visibility="collapsed")
     with col_kw2:
         if st.button("Añadir", use_container_width=True, type="secondary"):
             if new_keyword:
