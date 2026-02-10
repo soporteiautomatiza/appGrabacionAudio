@@ -164,8 +164,12 @@ with col2:
         else:
             filtered_recordings = recordings
         
+        # Inicializar estado expandido para audiosd
+        if "expanded_audios" not in st.session_state:
+            st.session_state.expanded_audios = {}
+        
         if filtered_recordings:
-            # Mostrar audios en tarjetas visuales
+            # Mostrar audios en desplegables/accordion
             for idx, recording in enumerate(filtered_recordings):
                 is_transcribed = is_audio_transcribed(recording, db_utils)
                 display_name = format_recording_name(recording)
@@ -173,107 +177,110 @@ with col2:
                 status = "Transcrito ✓" if is_transcribed else "Sin transcribir"
                 status_color = "#10b981" if is_transcribed else "#f97316"
                 
-                # Tarjeta de audio con diseño ultra moderno
+                # Estado expandido para este audio
+                is_expanded = st.session_state.expanded_audios.get(recording, False)
+                expand_icon = "▼" if is_expanded else "▶"
+                
+                # Tarjeta tipo acordeón
                 card_html = f"""
                 <div style="
                     background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 56, 0.95) 100%);
                     border: 1px solid rgba(148, 163, 184, 0.1);
                     border-radius: 16px;
                     padding: 18px 20px;
-                    margin-bottom: 14px;
+                    margin-bottom: 12px;
                     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
+                    cursor: pointer;
                     backdrop-filter: blur(10px);
                     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), inset 0 1px 1px rgba(255, 255, 255, 0.05);
-                "
-                onmouseover="
-                    this.style.background = 'linear-gradient(135deg, rgba(30, 41, 56, 0.95) 0%, rgba(45, 56, 71, 1) 100%)';
-                    this.style.borderColor = 'rgba(99, 102, 241, 0.4)';
-                    this.style.boxShadow = '0 8px 12px rgba(99, 102, 241, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.08)';
-                    this.style.transform = 'translateY(-2px)';
-                "
-                onmouseout="
-                    this.style.background = 'linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 56, 0.95) 100%)';
-                    this.style.borderColor = 'rgba(148, 163, 184, 0.1)';
-                    this.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1), inset 0 1px 1px rgba(255, 255, 255, 0.05)';
-                    this.style.transform = 'translateY(0)';
                 ">
-                    <div style="flex-grow: 1; min-width: 0;">
-                        <div style="color: #f1f5f9; font-weight: 600; font-size: 1rem; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                            {display_name}
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="flex-grow: 1; min-width: 0;">
+                            <div style="color: #f1f5f9; font-weight: 600; font-size: 1rem; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                {display_name}
+                            </div>
+                            <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                                <span style="color: #94a3b8; font-size: 0.85rem;">{file_type}</span>
+                                <span style="width: 1px; height: 16px; background: rgba(148, 163, 184, 0.2);"></span>
+                                <span style="color: {status_color}; font-size: 0.85rem; font-weight: 500;">{status}</span>
+                            </div>
                         </div>
-                        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-                            <span style="color: #94a3b8; font-size: 0.85rem;">{file_type}</span>
-                            <span style="width: 1px; height: 16px; background: rgba(148, 163, 184, 0.2);"></span>
-                            <span style="color: {status_color}; font-size: 0.85rem; font-weight: 500;">{status}</span>
-                        </div>
+                        <div style="color: #64748b; font-size: 1.2rem; margin-left: 12px;">{expand_icon}</div>
                     </div>
                 </div>
                 """
-                st.markdown(card_html, unsafe_allow_html=True)
                 
-                # Botones en fila debajo de la tarjeta
-                col_play, col_trans, col_delete = st.columns([1, 1, 1], gap="small")
+                # Hacer clickeable todo el card
+                if st.button(card_html, key=f"expand_{idx}_{recording}", use_container_width=True, 
+                           help="Haz clic para expandir opciones"):
+                    st.session_state.expanded_audios[recording] = not is_expanded
+                    st.rerun()
                 
-                with col_play:
-                    if st.button("▶ Play", key=f"play_{idx}_{recording}", use_container_width=True):
-                        audio_path = recorder.get_recording_path(recording)
-                        extension = recording.split('.')[-1]
-                        with open(audio_path, "rb") as f:
-                            st.audio(f.read(), format=f"audio/{extension}")
-                
-                with col_trans:
-                    if st.button("📝 Transcribir", key=f"trans_{idx}_{recording}", use_container_width=True):
-                        with st.spinner("Transcribiendo..."):
-                            try:
-                                audio_path = recorder.get_recording_path(recording)
-                                transcription = transcriber_model.transcript_audio(audio_path)
-                                st.session_state.contexto = transcription.text
-                                st.session_state.selected_audio = recording
-                                st.session_state.loaded_audio = recording
-                                st.session_state.chat_enabled = True
-                                st.session_state.keywords = {}
-                                
-                                # Guardar la transcripción en Supabase
-                                transcription_id = db_utils.save_transcription(
-                                    recording_filename=recording,
-                                    content=transcription.text,
-                                    language="es"
-                                )
-                                
-                                add_debug_event(f"Transcripción completada para '{recording}' (ID: {transcription_id})", "success")
-                                st.rerun()
-                            except Exception as e:
-                                show_error_expanded(f"Error al transcribir: {e}")
-                
-                with col_delete:
-                    if st.button("🗑 Eliminar", key=f"delete_{idx}_{recording}", use_container_width=True):
-                        st.session_state.delete_confirmation[recording] = True
-                
-                # Confirmación de eliminación
-                if st.session_state.delete_confirmation.get(recording):
-                    st.warning(f"⚠️ ¿Estás seguro de que deseas eliminar '{recording}'?")
-                    col_confirm, col_cancel = st.columns(2)
+                # Mostrar botones solo si está expandido
+                if st.session_state.expanded_audios.get(recording, False):
+                    st.markdown("")  # Espaciador
                     
-                    with col_confirm:
-                        if st.button("✓ Sí, eliminar", key=f"confirm_yes_{idx}_{recording}"):
-                            if delete_audio(recording, recorder, db_utils):
-                                delete_recording_local(recording)
-                                st.session_state.chat_enabled = False
-                                st.session_state.loaded_audio = None
-                                st.session_state.selected_audio = None
+                    # Botones en fila
+                    col_play, col_trans, col_delete = st.columns([1, 1, 1], gap="small")
+                    
+                    with col_play:
+                        if st.button("▶ Play", key=f"play_{idx}_{recording}", use_container_width=True):
+                            audio_path = recorder.get_recording_path(recording)
+                            extension = recording.split('.')[-1]
+                            with open(audio_path, "rb") as f:
+                                st.audio(f.read(), format=f"audio/{extension}")
+                    
+                    with col_trans:
+                        if st.button("📝 Transcribir", key=f"trans_{idx}_{recording}", use_container_width=True):
+                            with st.spinner("Transcribiendo..."):
+                                try:
+                                    audio_path = recorder.get_recording_path(recording)
+                                    transcription = transcriber_model.transcript_audio(audio_path)
+                                    st.session_state.contexto = transcription.text
+                                    st.session_state.selected_audio = recording
+                                    st.session_state.loaded_audio = recording
+                                    st.session_state.chat_enabled = True
+                                    st.session_state.keywords = {}
+                                    
+                                    # Guardar la transcripción en Supabase
+                                    transcription_id = db_utils.save_transcription(
+                                        recording_filename=recording,
+                                        content=transcription.text,
+                                        language="es"
+                                    )
+                                    
+                                    add_debug_event(f"Transcripción completada para '{recording}' (ID: {transcription_id})", "success")
+                                    st.rerun()
+                                except Exception as e:
+                                    show_error_expanded(f"Error al transcribir: {e}")
+                    
+                    with col_delete:
+                        if st.button("🗑 Eliminar", key=f"delete_{idx}_{recording}", use_container_width=True):
+                            st.session_state.delete_confirmation[recording] = True
+                    
+                    st.markdown("")  # Espaciador
+                    
+                    # Confirmación de eliminación
+                    if st.session_state.delete_confirmation.get(recording):
+                        st.warning(f"⚠️ ¿Estás seguro de que deseas eliminar '{recording}'?")
+                        col_confirm, col_cancel = st.columns(2)
+                        
+                        with col_confirm:
+                            if st.button("✓ Sí, eliminar", key=f"confirm_yes_{idx}_{recording}"):
+                                if delete_audio(recording, recorder, db_utils):
+                                    delete_recording_local(recording)
+                                    st.session_state.chat_enabled = False
+                                    st.session_state.loaded_audio = None
+                                    st.session_state.selected_audio = None
+                                    st.session_state.delete_confirmation.pop(recording, None)
+                                    st.session_state.expanded_audios.pop(recording, None)
+                                    add_debug_event(f"Audio '{recording}' eliminado", "success")
+                                    st.rerun()
+                        
+                        with col_cancel:
+                            if st.button("✗ Cancelar", key=f"confirm_no_{idx}_{recording}"):
                                 st.session_state.delete_confirmation.pop(recording, None)
-                                add_debug_event(f"Audio '{recording}' eliminado", "success")
                                 st.rerun()
-                    
-                    with col_cancel:
-                        if st.button("✗ Cancelar", key=f"confirm_no_{idx}_{recording}"):
-                            st.session_state.delete_confirmation.pop(recording, None)
-                            st.rerun()
-                
-                st.markdown("")
         else:
             show_warning_expanded(f"No se encontraron audios con '{search_query}'")
     else:
