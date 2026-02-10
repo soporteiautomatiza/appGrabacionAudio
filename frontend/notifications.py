@@ -45,10 +45,13 @@ def _show_toast(message: str, notification_type: str, duration: int = 3) -> None
     """
     config = TOAST_COLORS.get(notification_type, TOAST_COLORS["info"])
     icon = config["icon"]
-    bg = config["bg"]
     text = config["text"]
     
-    # CSS + HTML puro para toast
+    # Generar ID único para el toast
+    import uuid
+    toast_id = str(uuid.uuid4())
+    
+    # CSS + HTML + JavaScript para toast interactivo
     st.markdown(f"""
     <style>
         @keyframes slideInRight {{
@@ -63,8 +66,14 @@ def _show_toast(message: str, notification_type: str, duration: int = 3) -> None
         }}
         
         @keyframes fadeOut {{
-            from {{ opacity: 1; }}
-            to {{ opacity: 0; }}
+            from {{ 
+                opacity: 1;
+                transform: translateX(0);
+            }}
+            to {{ 
+                opacity: 0;
+                transform: translateX(400px);
+            }}
         }}
         
         .toast {{
@@ -73,25 +82,73 @@ def _show_toast(message: str, notification_type: str, duration: int = 3) -> None
             right: 20px;
             background: rgba(31, 41, 55, 0.95);
             color: {text};
-            padding: 16px 20px;
-            border-radius: 12px;
-            border-left: 4px solid {text};
+            padding: 12px 16px;
+            border-radius: 10px;
+            border-left: 3px solid {text};
             font-weight: 600;
-            font-size: 15px;
+            font-size: 13px;
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), inset 1px 1px 0 rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             z-index: 99999;
-            max-width: 320px;
+            max-width: 280px;
             word-wrap: break-word;
             font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;
             animation: slideInRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
             border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }}
+        
+        .toast-content {{
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }}
+        
+        .toast-close {{
+            background: none;
+            border: none;
+            color: {text};
+            cursor: pointer;
+            font-size: 18px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }}
+        
+        .toast-close:hover {{
+            opacity: 1;
+        }}
+        
+        .toast.fade-out {{
+            animation: fadeOut 0.3s ease-out forwards;
         }}
     </style>
     
-    <div class="toast">
-        <span style="margin-right: 10px; font-size: 18px;">{icon}</span> {message}
+    <div class="toast" id="toast-{toast_id}">
+        <div class="toast-content">
+            <span>{icon}</span> {message}
+        </div>
+        <button class="toast-close" onclick="document.getElementById('toast-{toast_id}').classList.add('fade-out'); setTimeout(() => document.getElementById('toast-{toast_id}').remove(), 300);">✕</button>
     </div>
+    
+    <script>
+        setTimeout(() => {{
+            const toast = document.getElementById('toast-{toast_id}');
+            if (toast && !toast.classList.contains('fade-out')) {{
+                toast.classList.add('fade-out');
+                setTimeout(() => toast.remove(), 300);
+            }}
+        }}, 2000);
+    </script>
     """, unsafe_allow_html=True)
 
 
