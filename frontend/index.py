@@ -151,22 +151,16 @@ with col_left:
 # PANEL DERECHO - Audios Guardados y Transcripción
 # ============================================================================
 with col_right:
-    # Panel unificado con glass-card
-    st.markdown('''
-    <div class="glass-card" style="padding: 24px; margin-bottom: 20px;">
-        <h2 style="margin: 0 0 8px 0; color: var(--foreground); font-size: 24px; font-weight: 700;">Gestión de Audios</h2>
-        <p style="margin: 0; color: var(--muted-foreground); font-size: 14px;">Transcribe, busca y administra tus grabaciones</p>
-    </div>
-    ''', unsafe_allow_html=True)
+    st.markdown("<div style='margin-bottom: 20px;'></div>", unsafe_allow_html=True)
+    st.header("Gestión de Audios")
+    st.caption("Transcribe, busca y administra tus grabaciones")
+    st.markdown("<div style='margin-bottom: 20px;'></div>", unsafe_allow_html=True)
     
     # Refresh de la lista de audios
     recordings = recorder.get_recordings_from_supabase()
     st.session_state.recordings = recordings
     
     if recordings:
-        # Contenedor para las tabs con estilo de panel
-        st.markdown('<div class="glass-card" style="padding: 20px;">', unsafe_allow_html=True)
-        
         # Tabs para diferentes secciones
         tab1, tab2, tab3 = st.tabs(["Transcribir", "Audios guardados", "Gestión en lote"])
         
@@ -398,9 +392,6 @@ with col_right:
                                 st.rerun()
     else:
         st.info("No hay grabaciones guardadas. Comienza grabando o subiendo audio.")
-    
-    # Cerrar glass-card container de tabs
-    st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown("")
 st.markdown("")
