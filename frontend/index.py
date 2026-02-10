@@ -181,45 +181,12 @@ with col2:
                 is_expanded = st.session_state.expanded_audios.get(recording, False)
                 expand_icon = "▼" if is_expanded else "▶"
                 
-                # Crear columnas para tarjeta y botón
-                col_card, col_btn = st.columns([20, 1], gap="small")
-                
-                with col_card:
-                    # Tarjeta renderizada como HTML
-                    card_html = f"""
-                    <div style="
-                        background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 56, 0.95) 100%);
-                        border: 1px solid rgba(148, 163, 184, 0.1);
-                        border-radius: 16px;
-                        padding: 18px 20px;
-                        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                        cursor: pointer;
-                        backdrop-filter: blur(10px);
-                        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), inset 0 1px 1px rgba(255, 255, 255, 0.05);
-                    "
-                    onmouseover="this.style.borderColor='rgba(99, 102, 241, 0.4)'; this.style.background='linear-gradient(135deg, rgba(30, 41, 56, 0.95) 0%, rgba(45, 56, 71, 1) 100%)'; this.style.boxShadow='0 8px 12px rgba(99, 102, 241, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.08)';"
-                    onmouseout="this.style.borderColor='rgba(148, 163, 184, 0.1)'; this.style.background='linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 56, 0.95) 100%)'; this.style.boxShadow='0 4px 6px rgba(0, 0, 0, 0.1), inset 0 1px 1px rgba(255, 255, 255, 0.05)';">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div style="flex-grow: 1; min-width: 0;">
-                                <div style="color: #f1f5f9; font-weight: 600; font-size: 1rem; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                    {display_name}
-                                </div>
-                                <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-                                    <span style="color: #94a3b8; font-size: 0.85rem;">{file_type}</span>
-                                    <span style="width: 1px; height: 16px; background: rgba(148, 163, 184, 0.2);"></span>
-                                    <span style="color: {status_color}; font-size: 0.85rem; font-weight: 500;">{status}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    """
-                    st.markdown(card_html, unsafe_allow_html=True)
-                
-                with col_btn:
-                    # Botón expandir
-                    if st.button(expand_icon, key=f"expand_{idx}_{recording}", help="Expandir"):
-                        st.session_state.expanded_audios[recording] = not is_expanded
-                        st.rerun()
+                # Botón para expandir/contraer
+                if st.button(f"{expand_icon} {display_name} • {file_type} • {status}", 
+                            key=f"expand_{idx}_{recording}", 
+                            use_container_width=True):
+                    st.session_state.expanded_audios[recording] = not is_expanded
+                    st.rerun()
                 
                 # Mostrar botones solo si está expandido
                 if st.session_state.expanded_audios.get(recording, False):
@@ -286,6 +253,8 @@ with col2:
                             if st.button("✗ Cancelar", key=f"confirm_no_{idx}_{recording}"):
                                 st.session_state.delete_confirmation.pop(recording, None)
                                 st.rerun()
+                
+                st.markdown("")  # Espaciador entre audios
         else:
             show_warning_expanded(f"No se encontraron audios con '{search_query}'")
     else:
