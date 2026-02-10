@@ -12,7 +12,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from config import MAX_AUDIO_SIZE_MB
 from logger import get_logger
-from frontend.notifications import show_success, show_error
+from frontend.notifications import show_success, show_error, show_success_debug
 
 logger = get_logger(__name__)
 
@@ -70,7 +70,7 @@ def process_audio_file(
         st.session_state.recordings = recorder.get_recordings_from_supabase()
         
         logger.info(f"✓ Audio OK: {filename} (ID: {recording_id})")
-        show_success(f"'{filename}' guardado en Supabase")
+        show_success_debug(f"'{filename}' guardado en Supabase")
         return True, recording_id
     
     except (ValueError, FileNotFoundError) as e:
