@@ -71,7 +71,6 @@ def process_audio_file(
         st.session_state.recordings = recorder.get_recordings_from_supabase()
         
         logger.info(f"✓ Audio OK: {filename} (ID: {recording_id})")
-        show_success_debug(f"'{filename}' guardado en Supabase")
         # Agregar al registro de debug
         if "debug_log" not in st.session_state:
             st.session_state.debug_log = []
