@@ -209,32 +209,42 @@ def get_styles():
         border: none;
     }
     
-    /* Botones modernos con glassmorphism */
+    /* Botones modernos minimalistas */
     .stButton > button {
-        border-radius: 12px;
+        border-radius: 10px;
         font-weight: 500;
-        transition: all 0.3s ease;
-        border: 1px solid rgba(139, 92, 246, 0.3);
-        background: var(--glass-bg);
+        font-size: 14px;
+        padding: 10px 24px;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid rgba(139, 92, 246, 0.2);
+        background: rgba(42, 45, 62, 0.6);
         color: var(--foreground);
         backdrop-filter: blur(10px);
+        letter-spacing: 0.3px;
     }
 
     .stButton > button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(139, 92, 246, 0.3);
-        border-color: rgba(139, 92, 246, 0.5);
+        background: rgba(139, 92, 246, 0.15);
+        border-color: rgba(139, 92, 246, 0.4);
+        box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
     }
     
-    /* Botones primarios con gradiente */
+    .stButton > button:active {
+        transform: scale(0.98);
+    }
+    
+    /* Botones primarios con gradiente sutil */
     .stButton > button[kind="primary"] {
-        background: linear-gradient(135deg, var(--electric-blue), var(--cyber-purple));
-        border: none;
+        background: linear-gradient(135deg, rgba(14, 165, 233, 0.8), rgba(139, 92, 246, 0.8));
+        border: 1px solid rgba(139, 92, 246, 0.3);
         color: white;
+        font-weight: 600;
     }
     
     .stButton > button[kind="primary"]:hover {
-        box-shadow: 0 8px 24px rgba(14, 165, 233, 0.4), 0 4px 12px rgba(139, 92, 246, 0.4);
+        background: linear-gradient(135deg, rgba(14, 165, 233, 0.9), rgba(139, 92, 246, 0.9));
+        box-shadow: 0 6px 16px rgba(139, 92, 246, 0.3);
+        border-color: rgba(139, 92, 246, 0.5);
     }
 
     /* Botones de eliminación (X rojo) */
@@ -432,6 +442,38 @@ def get_styles():
     .stAudioInput:hover {
         border-color: var(--cyber-purple);
         background: rgba(139, 92, 246, 0.1);
+    }
+    
+    /* Reproductor de audio moderno */
+    audio {
+        width: 100%;
+        height: 48px;
+        border-radius: 12px;
+        background: rgba(42, 45, 62, 0.8);
+        border: 1px solid rgba(139, 92, 246, 0.2);
+        outline: none;
+        backdrop-filter: blur(10px);
+    }
+    
+    audio::-webkit-media-controls-panel {
+        background: rgba(42, 45, 62, 0.9);
+        border-radius: 12px;
+    }
+    
+    audio::-webkit-media-controls-play-button,
+    audio::-webkit-media-controls-mute-button {
+        filter: brightness(1.2) saturate(1.3);
+    }
+    
+    audio::-webkit-media-controls-timeline {
+        border-radius: 4px;
+        margin: 0 8px;
+    }
+    
+    audio::-webkit-media-controls-current-time-display,
+    audio::-webkit-media-controls-time-remaining-display {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 12px;
     }
 
     /* ============================================================
