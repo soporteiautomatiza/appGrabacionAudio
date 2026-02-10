@@ -53,7 +53,8 @@ def initialize_session_state(recorder_obj: AudioRecorder) -> None:
         "transcription_cache": {},
         "chat_history_limit": CHAT_HISTORY_LIMIT,
         "opp_delete_confirmation": {},
-        "debug_log": []  # Registro de eventos para el DEBUG
+        "debug_log": [],  # Registro de eventos para el DEBUG
+        "audio_page": 0  # Página actual para paginación de audios
     }
     
     for key, value in session_defaults.items():
@@ -270,14 +271,34 @@ with col_right:
                     r for r in recordings 
                     if search_safe.lower() in r.lower()
                 ]
+                # Reset página al buscar
+                st.session_state.audio_page = 0
             else:
                 filtered_recordings = recordings
+            
+            # Paginación: 3 audios por página
+            ITEMS_PER_PAGE = 3
+            total_items = len(filtered_recordings)
+            total_pages = (total_items + ITEMS_PER_PAGE - 1) // ITEMS_PER_PAGE  # Redondeo hacia arriba
+            
+            # Asegurar que la página actual esté en rango válido
+            if st.session_state.audio_page >= total_pages and total_pages > 0:
+                st.session_state.audio_page = total_pages - 1
+            elif st.session_state.audio_page < 0:
+                st.session_state.audio_page = 0
+            
+            # Calcular índices de inicio y fin
+            start_idx = st.session_state.audio_page * ITEMS_PER_PAGE
+            end_idx = min(start_idx + ITEMS_PER_PAGE, total_items)
+            
+            # Obtener audios de la página actual
+            paginated_recordings = filtered_recordings[start_idx:end_idx]
             
             # Mostrar resultados
             if filtered_recordings:
                 st.markdown(f'''<div style="max-height: 500px; overflow-y: auto; margin-top: 12px;">''', unsafe_allow_html=True)
                 
-                for recording in filtered_recordings:
+                for recording in paginated_recordings:
                     display_name = format_recording_name(recording)
                     is_transcribed = is_audio_transcribed(recording, db_utils)
                     transcribed_badge = components.render_badge("Transcrito", "transcribed") if is_transcribed else ""
@@ -292,6 +313,28 @@ with col_right:
                     ''', unsafe_allow_html=True)
                 
                 st.markdown('</div>', unsafe_allow_html=True)
+                
+                # Controles de paginación (solo si hay más de 1 página)
+                if total_pages > 1:
+                    st.markdown("---")
+                    col_prev, col_info, col_next = st.columns([1, 2, 1])
+                    
+                    with col_prev:
+                        if st.button("← Anterior", disabled=(st.session_state.audio_page == 0), use_container_width=True):
+                            st.session_state.audio_page -= 1
+                            st.rerun()
+                    
+                    with col_info:
+                        st.markdown(f'''
+                        <div style="text-align: center; padding: 8px; color: var(--muted-foreground);">
+                            Página {st.session_state.audio_page + 1} de {total_pages}
+                        </div>
+                        ''', unsafe_allow_html=True)
+                    
+                    with col_next:
+                        if st.button("Siguiente →", disabled=(st.session_state.audio_page >= total_pages - 1), use_container_width=True):
+                            st.session_state.audio_page += 1
+                            st.rerun()
             else:
                 st.info(f"No se encontraron grabaciones para '{search_query}'")
         
