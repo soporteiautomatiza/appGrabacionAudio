@@ -54,25 +54,23 @@ def _show_toast(message: str, notification_type: str, duration: int = 3) -> None
     # CSS + HTML puro para toast sin JavaScript
     st.markdown(f"""
     <style>
-        @keyframes slideInRight {{
-            from {{
+        @keyframes toastAnimation {{
+            0% {{
                 opacity: 0;
                 transform: translateX(400px);
             }}
-            to {{
+            20% {{
                 opacity: 1;
                 transform: translateX(0);
             }}
-        }}
-        
-        @keyframes fadeOut {{
-            0% {{ 
+            80% {{
                 opacity: 1;
                 transform: translateX(0);
             }}
-            100% {{ 
+            100% {{
                 opacity: 0;
                 transform: translateX(400px);
+                visibility: hidden;
             }}
         }}
         
@@ -93,33 +91,22 @@ def _show_toast(message: str, notification_type: str, duration: int = 3) -> None
             max-width: 280px;
             word-wrap: break-word;
             font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;
-            animation: slideInRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), fadeOut 0.3s ease-out 1.7s forwards;
             border: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-        }}
-        
-        .toast-content {{
-            display: flex;
-            align-items: center;
             gap: 10px;
-            flex: 1;
-            min-width: 0;
+            animation: toastAnimation 2s ease-in-out forwards;
         }}
         
-        .toast-content span {{
+        .toast span {{
             font-size: 16px;
             flex-shrink: 0;
         }}
     </style>
     
     <div class="toast">
-        <div class="toast-content">
-            <span>{icon}</span> 
-            <span>{message}</span>
-        </div>
+        <span>{icon}</span> 
+        <span>{message}</span>
     </div>
     """, unsafe_allow_html=True)
 
