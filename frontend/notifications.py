@@ -2,8 +2,6 @@
 Funciones centralizadas para mostrar notificaciones con toast automático
 """
 import streamlit as st
-import time
-from datetime import datetime
 
 
 # Configuración de estilos por tipo de notificación
@@ -52,25 +50,11 @@ def _show_toast(message: str, notification_type: str, duration: int = 3) -> None
         notification_type: Tipo de notificación ('success', 'error', 'warning', 'info')
         duration: Segundos hasta desvanecerse (default: 3)
     """
-    _initialize_toast_state()
-    
     icon = TOAST_ICONS.get(notification_type, "•")
     color = TOAST_COLORS.get(notification_type, TOAST_COLORS["info"])
     
-    # Agregar notificación a la lista
-    toast_id = f"{notification_type}_{datetime.now().timestamp()}"
-    st.session_state.toasts.append({
-        "id": toast_id,
-        "message": message,
-        "icon": icon,
-        "type": notification_type,
-        "color": color,
-        "duration": duration,
-        "created_at": datetime.now()
-    })
-    
-    # Inyectar CSS y JavaScript para crear toasts en el DOM raíz
-    # Esto asegura que position: fixed funcione correctamente en el viewport
+    # Usar HTML puro con CSS para posicionar en esquina superior derecha
+    # Sin JavaScript para evitar conflictos con Streamlit
     st.markdown(f"""
     <style>
         @keyframes slideInRight {{
@@ -95,74 +79,28 @@ def _show_toast(message: str, notification_type: str, duration: int = 3) -> None
             }}
         }}
         
-        .streamlit-toast-container {{
+        .toast-notification {{
             position: fixed;
             top: 20px;
             right: 20px;
+            background-color: {color['bg']};
+            color: {color['text']};
+            padding: 16px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 15px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
             z-index: 99999;
-            pointer-events: none;
-        }}
-        
-        .streamlit-toast {{
-            position: relative;
-            margin-bottom: 12px;
-            pointer-events: auto;
-            animation: slideInRight 0.3s ease-out;
+            max-width: 300px;
+            word-wrap: break-word;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            animation: slideInRight 0.3s ease-out, fadeOut 0.3s ease-out {duration - 0.3}s forwards;
         }}
     </style>
     
-    <div class="streamlit-toast-container" id="streamlit-toast-container"></div>
-    
-    <script>
-        (function() {{
-            // Obtener o crear contenedor
-            let container = document.getElementById('streamlit-toast-container');
-            if (!container) {{
-                container = document.createElement('div');
-                container.className = 'streamlit-toast-container';
-                container.id = 'streamlit-toast-container';
-                document.body.appendChild(container);
-            }}
-            
-            // Crear toast
-            const toast = document.createElement('div');
-            toast.id = '{toast_id}';
-            toast.className = 'streamlit-toast';
-            toast.innerHTML = `
-                <div style="
-                    background-color: {color['bg']};
-                    color: {color['text']};
-                    padding: 16px 20px;
-                    border-radius: 8px;
-                    font-weight: 600;
-                    font-size: 15px;
-                    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-                    max-width: 300px;
-                    word-wrap: break-word;
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                ">
-                    <span>{icon}</span>
-                    <span>{message}</span>
-                </div>
-            `;
-            
-            container.appendChild(toast);
-            
-            // Auto-remover después de duration segundos
-            setTimeout(() => {{
-                const elem = document.getElementById('{toast_id}');
-                if (elem) {{
-                    elem.style.animation = 'fadeOut 0.3s ease-out forwards';
-                    setTimeout(() => {{
-                        elem.remove();
-                    }}, 300);
-                }}
-            }}, {duration * 1000});
-        }})();
-    </script>
+    <div class="toast-notification">
+        <span>{icon}</span> {message}
+    </div>
     """, unsafe_allow_html=True)
 
 
