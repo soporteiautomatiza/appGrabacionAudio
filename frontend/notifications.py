@@ -290,7 +290,7 @@ def show_delete_confirmation_modal(item_name: str, item_type: str = "elemento") 
 
 def show_delete_confirmation_buttons(item_name: str, item_type: str = "elemento", key_prefix: str = "") -> tuple[bool, bool]:
     """
-    Mostrar modal de confirmación bonito con botones DENTRO del modal.
+    Mostrar modal de confirmación bonito con botones clickeables.
     
     Args:
         item_name: Nombre del elemento a eliminar
@@ -300,7 +300,7 @@ def show_delete_confirmation_buttons(item_name: str, item_type: str = "elemento"
     Returns:
         Tupla (confirmed: bool, cancelled: bool)
     """
-    # CSS del modal con espacio para botones
+    # CSS del modal
     st.markdown(f"""
     <style>
         .delete-modal-overlay {{
@@ -401,44 +401,6 @@ def show_delete_confirmation_buttons(item_name: str, item_type: str = "elemento"
             gap: 8px;
             margin-bottom: 32px;
         }}
-        
-        .delete-modal-buttons {{
-            display: flex;
-            gap: 12px;
-            margin-bottom: 0;
-        }}
-        
-        .delete-modal-buttons button {{
-            flex: 1;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.2s ease;
-            font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;
-        }}
-        
-        .delete-modal-buttons .btn-confirm {{
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            color: white;
-        }}
-        
-        .delete-modal-buttons .btn-confirm:hover {{
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
-        }}
-        
-        .delete-modal-buttons .btn-cancel {{
-            background: rgba(255, 255, 255, 0.1);
-            color: #d1d5db;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }}
-        
-        .delete-modal-buttons .btn-cancel:hover {{
-            background: rgba(255, 255, 255, 0.15);
-        }}
     </style>
     
     <div class="delete-modal-overlay">
@@ -450,57 +412,27 @@ def show_delete_confirmation_buttons(item_name: str, item_type: str = "elemento"
             <div class="delete-modal-warning">
                 <span>⚡ Eliminación permanente</span>
             </div>
-            
-            <div class="delete-modal-buttons">
-                <button type="button" class="btn-confirm" id="delete-confirm-{key_prefix}">🗑️ Eliminar</button>
-                <button type="button" class="btn-cancel" id="delete-cancel-{key_prefix}">✕ Cancelar</button>
-            </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
     
-    # Manejadores JavaScript para disparar botones Streamlit
-    st.markdown(f"""
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {{
-        const confirmBtn = document.getElementById('delete-confirm-{key_prefix}');
-        const cancelBtn = document.getElementById('delete-cancel-{key_prefix}');
-        
-        if (confirmBtn) {{
-            confirmBtn.addEventListener('click', function(e) {{
-                e.preventDefault();
-                e.stopPropagation();
-                document.getElementById('streamlit-confirm-{key_prefix}').click();
-            }});
-        }}
-        
-        if (cancelBtn) {{
-            cancelBtn.addEventListener('click', function(e) {{
-                e.preventDefault();
-                e.stopPropagation();
-                document.getElementById('streamlit-cancel-{key_prefix}').click();
-            }});
-        }}
-    }});
-    </script>
-    """, unsafe_allow_html=True)
+    # Espacio negativo para traer botones dentro visualmente
+    st.markdown('<div style="margin-top: -120px; position: relative; z-index: 9999;"></div>', unsafe_allow_html=True)
     
-    # Botones Streamlit invisibles
+    # Botones Streamlit dentro del modal (con margin negativo)
     col1, col2 = st.columns(2, gap="small")
     confirmed = False
     cancelled = False
     
     with col1:
-        # Botón invisible para confirmar
-        st.markdown(f'<button id="streamlit-confirm-{key_prefix}" style="display:none;"></button>', unsafe_allow_html=True)
-        if st.button("", key=f"confirm_{key_prefix}", help="", use_container_width=True):
+        if st.button("🗑️ Eliminar", key=f"confirm_{key_prefix}", use_container_width=True, type="primary"):
             confirmed = True
     
     with col2:
-        # Botón invisible para cancelar
-        st.markdown(f'<button id="streamlit-cancel-{key_prefix}" style="display:none;"></button>', unsafe_allow_html=True)
-        if st.button("", key=f"cancel_{key_prefix}", help="", use_container_width=True):
+        if st.button("✕ Cancelar", key=f"cancel_{key_prefix}", use_container_width=True):
             cancelled = True
+    
+    st.markdown('</div>', unsafe_allow_html=True)
     
     return confirmed, cancelled
 
