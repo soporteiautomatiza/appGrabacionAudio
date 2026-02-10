@@ -290,7 +290,7 @@ def show_delete_confirmation_modal(item_name: str, item_type: str = "elemento") 
 
 def show_delete_confirmation_buttons(item_name: str, item_type: str = "elemento", key_prefix: str = "") -> tuple[bool, bool]:
     """
-    Mostrar modal de confirmación bonito con botones.
+    Mostrar modal de confirmación bonito con botones DENTRO del modal.
     
     Args:
         item_name: Nombre del elemento a eliminar
@@ -300,7 +300,7 @@ def show_delete_confirmation_buttons(item_name: str, item_type: str = "elemento"
     Returns:
         Tupla (confirmed: bool, cancelled: bool)
     """
-    # CSS del modal
+    # CSS del modal con espacio para botones
     st.markdown(f"""
     <style>
         .delete-modal-overlay {{
@@ -313,7 +313,7 @@ def show_delete_confirmation_buttons(item_name: str, item_type: str = "elemento"
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 9999;
+            z-index: 9998;
             animation: fadeIn 0.25s ease-out;
         }}
         
@@ -338,6 +338,7 @@ def show_delete_confirmation_buttons(item_name: str, item_type: str = "elemento"
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 20px;
             padding: 40px;
+            padding-bottom: 120px;
             max-width: 450px;
             width: 92%;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9), 
@@ -347,6 +348,7 @@ def show_delete_confirmation_buttons(item_name: str, item_type: str = "elemento"
             animation: slideUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
             text-align: center;
             font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;
+            position: relative;
         }}
         
         .delete-modal-icon {{
@@ -397,6 +399,26 @@ def show_delete_confirmation_buttons(item_name: str, item_type: str = "elemento"
             align-items: center;
             justify-content: center;
             gap: 8px;
+            margin-bottom: 20px;
+        }}
+        
+        /* Posicionar botones DENTRO del modal */
+        .delete-modal-buttons-container-{key_prefix} {{
+            margin-top: -105px !important;
+            position: relative !important;
+            z-index: 9999 !important;
+            padding: 0 20px !important;
+            display: flex !important;
+            gap: 8px !important;
+        }}
+        
+        .delete-modal-buttons-container-{key_prefix} > div {{
+            flex: 1 !important;
+        }}
+        
+        .delete-modal-buttons-container-{key_prefix} button {{
+            border-radius: 10px !important;
+            font-weight: 600 !important;
         }}
     </style>
     
@@ -414,10 +436,9 @@ def show_delete_confirmation_buttons(item_name: str, item_type: str = "elemento"
     </div>
     """, unsafe_allow_html=True)
     
-    # Espacio para que no se solape
-    st.markdown("")
+    # Contenedor HTML para botones DENTRO del modal
+    st.markdown(f'<div class="delete-modal-buttons-container-{key_prefix}">', unsafe_allow_html=True)
     
-    # Botones de confirmación - simples y funcionales
     col1, col2 = st.columns(2, gap="small")
     confirmed = False
     cancelled = False
@@ -429,6 +450,8 @@ def show_delete_confirmation_buttons(item_name: str, item_type: str = "elemento"
     with col2:
         if st.button("✕ Cancelar", key=f"cancel_{key_prefix}", use_container_width=True):
             cancelled = True
+    
+    st.markdown('</div>', unsafe_allow_html=True)
     
     return confirmed, cancelled
 
