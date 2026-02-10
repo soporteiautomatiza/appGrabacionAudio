@@ -344,20 +344,23 @@ with col_right:
                                 else:
                                     show_warning("El nuevo nombre es igual al actual")
                     else:
-                        # Mostrar tarjeta con diseño original
-                        st.markdown(f'''
-                        <div class="glass-card-hover" style="padding: 12px; margin: 8px 0; border-radius: 12px; background: rgba(42, 45, 62, 0.5); border: 1px solid rgba(139, 92, 246, 0.1); cursor: pointer;">
-                            <div>
-                                <div style="font-weight: 600; margin-bottom: 4px;">{display_name} {transcribed_badge}</div>
-                                <div style="font-size: 11px; color: var(--muted-foreground);">Selecciona en la pestaña "Transcribir"</div>
-                            </div>
-                        </div>
-                        ''', unsafe_allow_html=True)
+                        # Tarjeta con botón pequeño a la derecha
+                        col_card, col_edit = st.columns([6, 0.5])
                         
-                        # Botón invisible para capturar click
-                        if st.button("✏️ Haz clic para renombrar", key=f"btn_{rec_id}", use_container_width=True, type="secondary"):
-                            st.session_state[f"show_rename_{rec_id}"] = True
-                            st.rerun()
+                        with col_card:
+                            st.markdown(f'''
+                            <div class="glass-card-hover" style="padding: 12px; margin: 8px 0; border-radius: 12px; background: rgba(42, 45, 62, 0.5); border: 1px solid rgba(139, 92, 246, 0.1); cursor: pointer;">
+                                <div>
+                                    <div style="font-weight: 600; margin-bottom: 4px;">{display_name} {transcribed_badge}</div>
+                                    <div style="font-size: 11px; color: var(--muted-foreground);">Selecciona en la pestaña "Transcribir"</div>
+                                </div>
+                            </div>
+                            ''', unsafe_allow_html=True)
+                        
+                        with col_edit:
+                            if st.button("✏️", key=f"edit_{rec_id}", help="Renombrar"):
+                                st.session_state[f"show_rename_{rec_id}"] = True
+                                st.rerun()
                     
                     st.markdown("")  # Espaciado
                 
