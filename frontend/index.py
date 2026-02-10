@@ -187,7 +187,7 @@ with col2:
                         st.session_state.loaded_audio = selected_audio
                         st.session_state.chat_enabled = True
                         st.session_state.keywords = {}
-                        show_info_expanded("Transcripción cargada desde Supabase")
+                        show_info_debug("Transcripción cargada desde Supabase")
                     else:
                         # Si no existe transcripción, marcar que se cargó este audio (pero sin transcripción)
                         st.session_state.selected_audio = selected_audio
