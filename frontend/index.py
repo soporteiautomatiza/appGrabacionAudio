@@ -54,7 +54,8 @@ def initialize_session_state(recorder_obj: AudioRecorder) -> None:
         "chat_history_limit": CHAT_HISTORY_LIMIT,
         "opp_delete_confirmation": {},
         "debug_log": [],  # Registro de eventos para el DEBUG
-        "audio_page": 0  # Página actual para paginación de audios
+        "audio_page": 0,  # Página actual para paginación de audios
+        "batch_delete_selected": set()  # Audios seleccionados para eliminación en lote
     }
     
     for key, value in session_defaults.items():
@@ -342,34 +343,93 @@ with col_right:
         with tab3:
             st.subheader("Eliminar múltiples audios")
             
-            audios_to_delete = st.multiselect(
-                "Audios a eliminar:",
-                filtered_recordings,
-                format_func=lambda x: format_recording_name(x)
-            )
+            # Contador de seleccionados
+            selected_count = len(st.session_state.batch_delete_selected)
+            if selected_count > 0:
+                st.markdown(f'''
+                <div style="padding: 12px; margin-bottom: 16px; border-radius: 12px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3);">
+                    <div style="font-weight: 600; color: #f87171;">⚠️ {selected_count} audio{'s' if selected_count > 1 else ''} seleccionado{'s' if selected_count > 1 else ''} para eliminar</div>
+                </div>
+                ''', unsafe_allow_html=True)
+            else:
+                st.caption("Selecciona los audios que deseas eliminar")
             
-            if audios_to_delete:
-                show_warning(f"Vas a eliminar {len(audios_to_delete)} audio(s)")
+            # Mostrar audios como tarjetas con checkboxes
+            for recording in recordings:
+                display_name = format_recording_name(recording)
+                is_transcribed = is_audio_transcribed(recording, db_utils)
+                is_selected = recording in st.session_state.batch_delete_selected
                 
-                for audio in audios_to_delete:
-                    st.write(f"  • {audio}")
+                # Crear un contenedor para cada audio
+                col_check, col_content = st.columns([0.5, 9.5])
                 
-                col_confirm, col_cancel = st.columns(2)
-                with col_confirm:
-                    if st.button("Eliminar seleccionados", type="primary", use_container_width=True):
-                        with st.spinner(f"Eliminando {len(audios_to_delete)} audio(s)..."):
+                with col_check:
+                    # Checkbox para selección
+                    if st.checkbox("", value=is_selected, key=f"batch_check_{recording}", label_visibility="collapsed"):
+                        st.session_state.batch_delete_selected.add(recording)
+                    else:
+                        st.session_state.batch_delete_selected.discard(recording)
+                
+                with col_content:
+                    # Tarjeta visual del audio
+                    border_color = "rgba(239, 68, 68, 0.5)" if is_selected else "rgba(139, 92, 246, 0.1)"
+                    background = "rgba(239, 68, 68, 0.1)" if is_selected else "rgba(42, 45, 62, 0.5)"
+                    transcribed_badge = components.render_badge("Transcrito", "transcribed") if is_transcribed else ""
+                    
+                    st.markdown(f'''
+                    <div style="padding: 12px; margin-bottom: 8px; border-radius: 12px; background: {background}; border: 1px solid {border_color}; transition: all 0.2s;">
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 4px;">{display_name} {transcribed_badge}</div>
+                            <div style="font-size: 11px; color: var(--muted-foreground);">{'Marcado para eliminar' if is_selected else 'Clic en el checkbox para seleccionar'}</div>
+                        </div>
+                    </div>
+                    ''', unsafe_allow_html=True)
+            
+            # Botones de acción
+            if selected_count > 0:
+                st.markdown("---")
+                col_select_all, col_clear = st.columns(2)
+                
+                with col_select_all:
+                    if st.button("✓ Seleccionar todos", use_container_width=True):
+                        st.session_state.batch_delete_selected = set(recordings)
+                        st.rerun()
+                
+                with col_clear:
+                    if st.button("✕ Limpiar selección", use_container_width=True):
+                        st.session_state.batch_delete_selected = set()
+                        st.rerun()
+                
+                st.markdown("")
+                
+                # Botón de eliminación
+                col_spacer, col_delete, col_spacer2 = st.columns([1, 2, 1])
+                with col_delete:
+                    if st.button(f"🗑️ Eliminar {selected_count} audio{'s' if selected_count > 1 else ''}", type="primary", use_container_width=True):
+                        with st.spinner(f"Eliminando {selected_count} audio(s)..."):
                             deleted_count = 0
+                            audios_to_delete = list(st.session_state.batch_delete_selected)
+                            
                             for audio in audios_to_delete:
                                 if delete_audio(audio, recorder, db_utils):
                                     delete_recording_local(audio)
                                     deleted_count += 1
                             
+                            # Limpiar selección y estados
+                            st.session_state.batch_delete_selected = set()
                             st.session_state.chat_enabled = False
                             st.session_state.selected_audio = None
                             
                             if deleted_count > 0:
                                 show_success(f"{deleted_count} audio(s) eliminado(s)")
                                 st.rerun()
+            else:
+                st.markdown("")
+                col_select_all = st.columns(1)[0]
+                with col_select_all:
+                    if st.button("✓ Seleccionar todos", use_container_width=True):
+                        st.session_state.batch_delete_selected = set(recordings)
+                        st.rerun()
     else:
         st.info("No hay grabaciones guardadas. Comienza grabando o subiendo audio.")
 
