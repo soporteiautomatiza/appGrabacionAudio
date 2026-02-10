@@ -57,19 +57,19 @@ def _show_toast(message: str, notification_type: str, duration: int = 3) -> None
         @keyframes toastAnimation {{
             0% {{
                 opacity: 0;
-                transform: translateX(400px);
+                transform: translateX(-400px);
             }}
-            20% {{
+            15% {{
                 opacity: 1;
                 transform: translateX(0);
             }}
-            80% {{
+            85% {{
                 opacity: 1;
                 transform: translateX(0);
             }}
             100% {{
                 opacity: 0;
-                transform: translateX(400px);
+                transform: translateX(-400px);
                 visibility: hidden;
             }}
         }}
@@ -77,7 +77,7 @@ def _show_toast(message: str, notification_type: str, duration: int = 3) -> None
         .toast {{
             position: fixed;
             top: 100px;
-            right: 20px;
+            left: 20px;
             background: rgba(31, 41, 55, 0.95);
             color: {text};
             padding: 12px 16px;
@@ -88,14 +88,14 @@ def _show_toast(message: str, notification_type: str, duration: int = 3) -> None
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), inset 1px 1px 0 rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             z-index: 99999;
-            max-width: 280px;
+            max-width: 350px;
             word-wrap: break-word;
             font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;
             border: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
             align-items: center;
             gap: 10px;
-            animation: toastAnimation 2s ease-in-out forwards;
+            animation: toastAnimation 4s ease-in-out forwards;
         }}
         
         .toast span {{
