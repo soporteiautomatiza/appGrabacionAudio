@@ -344,17 +344,20 @@ with col_right:
                                 else:
                                     show_warning("El nuevo nombre es igual al actual")
                     else:
-                        # Tarjeta clickeable - usar button con HTML
-                        if st.button(
-                            f"{display_name} {transcribed_badge}",
-                            key=f"card_{rec_id}",
-                            use_container_width=True,
-                            help="Haz clic para renombrar"
-                        ):
+                        # Mostrar tarjeta con diseño original
+                        st.markdown(f'''
+                        <div class="glass-card-hover" style="padding: 12px; margin: 8px 0; border-radius: 12px; background: rgba(42, 45, 62, 0.5); border: 1px solid rgba(139, 92, 246, 0.1); cursor: pointer;">
+                            <div>
+                                <div style="font-weight: 600; margin-bottom: 4px;">{display_name} {transcribed_badge}</div>
+                                <div style="font-size: 11px; color: var(--muted-foreground);">Selecciona en la pestaña "Transcribir"</div>
+                            </div>
+                        </div>
+                        ''', unsafe_allow_html=True)
+                        
+                        # Botón invisible para capturar click
+                        if st.button("✏️ Haz clic para renombrar", key=f"btn_{rec_id}", use_container_width=True, type="secondary"):
                             st.session_state[f"show_rename_{rec_id}"] = True
                             st.rerun()
-                        
-                        st.caption("Selecciona en la pestaña \"Transcribir\"")
                     
                     st.markdown("")  # Espaciado
                 
