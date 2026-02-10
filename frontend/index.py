@@ -239,7 +239,6 @@ with col2:
                                     language="es"
                                 )
                                 
-                                show_success_debug(f"✓ Transcripción guardada: {transcription_id}")
                                 add_debug_event(f"Transcripción completada para '{selected_audio}' (ID: {transcription_id})", "success")
                             except Exception as e:
                                 show_error_expanded(f"Error al transcribir: {e}")
