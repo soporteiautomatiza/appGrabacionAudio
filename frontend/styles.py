@@ -1,379 +1,317 @@
 """
-Estilos CSS modernos para la aplicación
+Estilos CSS modernos y profesionales para la aplicación
 """
 
 def get_styles():
     """Retorna todos los estilos CSS de la aplicación"""
     return """
     <style>
-    /* Contenedor principal centrado */
-    .main {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 0 40px;
-    }
-    
-    .stMainBlockContainer {
-        max-width: 1200px;
-        margin: 0 auto;
-    }
-    
+    /* Fondo y tipografía */
     [data-testid="stAppViewContainer"] {
-        padding: 0;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     }
     
-    [data-testid="stAppViewContainer"] > section {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 0 40px;
+    .stApp {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
     }
     
-    /* Centrar input de chat */
-    [data-testid="stInputBase"] {
-        max-width: 100%;
+    /* Sidebar styling */
+    section[data-testid="stSidebar"] {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        color: white;
+        padding: 20px;
     }
     
-    .stChatInputContainer {
-        max-width: 100%;
-        margin: 0 auto;
-    }
-    
-    @keyframes pulse-glow {
-        0% { 
-            box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
-        }
-        70% { 
-            box-shadow: 0 0 0 20px rgba(76, 175, 80, 0);
-        }
-        100% { 
-            box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
-        }
-    }
-
-    @keyframes slide-in {
-        from {
-            opacity: 0;
-            transform: translateY(-10px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    @keyframes expand {
-        from {
-            max-width: 40px;
-            padding: 8px;
-        }
-        to {
-            max-width: 500px;
-            padding: 14px 16px;
-        }
-    }
-
-    @keyframes avatar-pulse {
-        0%, 100% {
-            transform: scale(1);
-        }
-        50% {
-            transform: scale(1.1);
-        }
-    }
-
-    @keyframes avatar-spin {
-        0% {
-            transform: rotateY(0deg);
-        }
-        100% {
-            transform: rotateY(360deg);
-        }
-    }
-
-    .success-pulse {
-        animation: pulse-glow 1.5s infinite;
-        padding: 12px 16px;
+    section[data-testid="stSidebar"] .stRadio > label {
+        color: #94a3b8;
+        padding: 10px;
         border-radius: 8px;
-        background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(76, 175, 80, 0.05) 100%);
-        border-left: 4px solid #4CAF50;
-        font-weight: 500;
+        transition: all 0.3s ease;
     }
-
-    .badge {
-        display: inline-block;
-        padding: 6px 12px;
-        border-radius: 6px;
+    
+    section[data-testid="stSidebar"] .stRadio > label:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+    }
+    
+    section[data-testid="stSidebar"] .stRadio > label[data-baseweb="radio"]:has(input:checked) {
+        background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
         color: white;
         font-weight: 600;
-        font-size: 14px;
-        margin-right: 8px;
     }
-
-    .badge-recording {
-        background: linear-gradient(135deg, #FF6B6B, #FF5252);
-    }
-
-    .badge-upload {
-        background: linear-gradient(135deg, #4ECDC4, #44A08D);
-    }
-
-    .badge-saved {
-        background: linear-gradient(135deg, #95E77D, #4CAF50);
-    }
-
-    /* Estilos para notificaciones compactas con emoticono */
-    .notification-icon {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        font-size: 20px;
-        cursor: pointer;
+    
+    /* Botones mejorados */
+    .stButton > button {
+        border-radius: 8px;
+        font-weight: 500;
         transition: all 0.3s ease;
-        margin: 5px 0;
-        position: relative;
+        border: none;
+        padding: 8px 16px;
     }
-
-    .notification-icon:hover {
-        transform: scale(1.1);
+    
+    .stButton > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
-
-    .notification-icon-success {
-        background: linear-gradient(135deg, rgba(52, 211, 153, 0.2) 0%, rgba(34, 197, 94, 0.1) 100%);
-        border: 2px solid #34d399;
-        color: #10b981;
-    }
-
-    .notification-icon-error {
-        background: linear-gradient(135deg, rgba(248, 113, 113, 0.2) 0%, rgba(239, 68, 68, 0.1) 100%);
-        border: 2px solid #f87171;
-        color: #dc2626;
-    }
-
-    .notification-icon-warning {
-        background: linear-gradient(135deg, rgba(251, 191, 36, 0.2) 0%, rgba(245, 158, 11, 0.1) 100%);
-        border: 2px solid #fbbf24;
-        color: #d97706;
-    }
-
-    .notification-icon-info {
-        background: linear-gradient(135deg, rgba(96, 165, 250, 0.2) 0%, rgba(59, 130, 246, 0.1) 100%);
-        border: 2px solid #60a5fa;
-        color: #2563eb;
-    }
-
-    /* Tooltip para el mensaje */
-    .notification-tooltip {
-        visibility: hidden;
-        position: absolute;
-        z-index: 1000;
-        bottom: 125%;
-        left: 50%;
-        transform: translateX(-50%);
-        background-color: rgba(0, 0, 0, 0.9);
+    
+    button[kind="primary"] {
+        background: linear-gradient(135deg, #3B82F6 0%, #2563eb 100%);
         color: white;
-        text-align: center;
-        border-radius: 8px;
-        padding: 8px 12px;
-        white-space: nowrap;
-        font-size: 12px;
-        font-weight: 500;
-        opacity: 0;
-        transition: opacity 0.3s;
-        pointer-events: none;
-        max-width: 200px;
-        word-wrap: break-word;
-        white-space: normal;
     }
-
-    .notification-icon:hover .notification-tooltip {
-        visibility: visible;
-        opacity: 1;
+    
+    button[kind="secondary"] {
+        background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+        color: white;
     }
-
-    /* Arrow para tooltip */
-    .notification-tooltip::after {
-        content: "";
-        position: absolute;
-        top: 100%;
-        left: 50%;
-        margin-left: -5px;
-        border-width: 5px;
-        border-style: solid;
-        border-color: rgba(0, 0, 0, 0.9) transparent transparent transparent;
-    }
-
-    /* Estilos para notificaciones expandidas (para debug) */
-    .notification-expanded {
-        animation: slide-in 0.3s ease-out;
-        margin: 10px 0;
-        border-radius: 8px;
-        padding: 14px 16px;
-        font-weight: 500;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    .notification-expanded-success {
-        background: linear-gradient(135deg, rgba(52, 211, 153, 0.15) 0%, rgba(34, 197, 94, 0.08) 100%);
-        border-left: 5px solid #34d399;
-        color: #10b981;
-    }
-
-    .notification-expanded-error {
-        background: linear-gradient(135deg, rgba(248, 113, 113, 0.15) 0%, rgba(239, 68, 68, 0.08) 100%);
-        border-left: 5px solid #f87171;
-        color: #dc2626;
-    }
-
-    .notification-expanded-info {
-        background: linear-gradient(135deg, rgba(96, 165, 250, 0.15) 0%, rgba(59, 130, 246, 0.08) 100%);
-        border-left: 5px solid #60a5fa;
-        color: #2563eb;
-    }
-
-    .notification-expanded-warning {
-        background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(245, 158, 11, 0.08) 100%);
-        border-left: 5px solid #fbbf24;
-        color: #d97706;
-    }
-
-    /* Estilos para el chat */
-    .chat-container {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-        padding: 20px 0;
-    }
-
-    .chat-message {
-        display: flex;
-        gap: 12px;
-        margin-bottom: 16px;
-        animation: slide-in 0.3s ease-out;
-    }
-
-    .chat-message-user {
-        justify-content: flex-end;
-    }
-
-    .chat-message-ai {
-        justify-content: flex-start;
-    }
-
-    .chat-bubble {
-        max-width: 70%;
-        padding: 12px 16px;
+    
+    /* Tarjetas y contenedores */
+    [data-testid="stExpander"] {
+        background: white;
+        border: 1px solid #e5e7eb;
         border-radius: 12px;
-        word-wrap: break-word;
-        line-height: 1.5;
-        font-size: 14px;
+        margin-bottom: 10px;
     }
-
+    
+    [data-testid="stExpander"]:hover {
+        border-color: #3B82F6;
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+    }
+    
+    /* Inputs y selects */
+    .stTextInput > div > div > input,
+    .stSelectbox > div > div > div {
+        border-radius: 8px;
+        border: 2px solid #e5e7eb;
+        transition: all 0.3s ease;
+    }
+    
+    .stTextInput > div > div > input:focus,
+    .stSelectbox > div > div > div:focus {
+        border-color: #3B82F6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    /* Tabs */
+    [data-testid="stTabs"] {
+        background: white;
+    }
+    
+    [data-testid="stTab"] {
+        padding: 10px 20px;
+        border-radius: 8px 8px 0 0;
+        transition: all 0.3s ease;
+    }
+    
+    [data-testid="stTab"]:hover {
+        background: #f3f4f6;
+    }
+    
+    [data-testid="stTab"][aria-selected="true"] {
+        background: linear-gradient(135deg, #3B82F6 0%, #2563eb 100%);
+        color: white;
+        font-weight: 600;
+    }
+    
+    /* Métricas */
+    [data-testid="metric-container"] {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+    
+    [data-testid="metric-container"]:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    /* Chat bubbles */
     .chat-bubble-user {
         background: linear-gradient(135deg, #3B82F6 0%, #2563eb 100%);
         color: white;
         border-radius: 18px 18px 4px 18px;
+        padding: 12px 16px;
+        margin: 5px 0;
+        max-width: 70%;
+        margin-left: auto;
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
     }
-
+    
     .chat-bubble-ai {
-        background: linear-gradient(135deg, rgba(107, 114, 128, 0.1) 0%, rgba(75, 85, 99, 0.05) 100%);
-        color: #e5e7eb;
-        border: 1px solid rgba(107, 114, 128, 0.2);
+        background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+        color: #374151;
         border-radius: 18px 18px 18px 4px;
+        padding: 12px 16px;
+        margin: 5px 0;
+        max-width: 70%;
+        border: 1px solid #d1d5db;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     }
-
-    .chat-avatar {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 18px;
-        flex-shrink: 0;
-        margin-top: 4px;
+    
+    /* Notificaciones */
+    .stSuccess {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        border-radius: 8px;
+        border: none;
     }
-
-    .chat-avatar-user {
+    
+    .stError {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color: white;
+        border-radius: 8px;
+        border: none;
+    }
+    
+    .stWarning {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: white;
+        border-radius: 8px;
+        border: none;
+    }
+    
+    .stInfo {
         background: linear-gradient(135deg, #3B82F6 0%, #2563eb 100%);
+        color: white;
+        border-radius: 8px;
+        border: none;
     }
-
-    .chat-avatar-ai {
-        background: linear-gradient(135deg, rgba(107, 114, 128, 0.2) 0%, rgba(75, 85, 99, 0.15) 100%);
-        border: 1px solid rgba(107, 114, 128, 0.3);
-    }
-
-    .avatar-pulse {
-        animation: avatar-pulse 2s ease-in-out infinite;
-    }
-
-    .avatar-spin {
-        animation: avatar-spin 3s linear infinite;
-    }
-
-    /* Espaciado mejorado para headers */
-    h1 {
-        margin-top: 40px;
-        margin-bottom: 16px;
-    }
-
-    h2 {
-        margin-top: 32px;
-        margin-bottom: 12px;
-    }
-
-    h3 {
-        margin-top: 24px;
-        margin-bottom: 10px;
-    }
-
-    h4 {
-        margin-top: 16px;
-        margin-bottom: 12px;
-    }
-
-    /* Estilos para badges de palabras clave */
+    
+    /* Badges para palabras clave */
     .keyword-badge {
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        background: linear-gradient(135deg, #0052CC 0%, #003d99 100%);
-        padding: 10px 14px;
-        border-radius: 6px;
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        padding: 8px 16px;
+        border-radius: 20px;
         color: white;
         font-weight: 500;
         font-size: 14px;
-        box-shadow: 0 2px 8px rgba(0, 82, 204, 0.25);
+        margin: 4px;
+        box-shadow: 0 2px 4px rgba(139, 92, 246, 0.2);
         transition: all 0.3s ease;
     }
-
+    
     .keyword-badge:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 82, 204, 0.35);
+        box-shadow: 0 4px 8px rgba(139, 92, 246, 0.3);
     }
-
-    /* Botones mejorados */
-    .stButton > button {
-        border-radius: 6px;
-        font-weight: 500;
+    
+    /* Animaciones sutiles */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .stAlert {
+        animation: fadeIn 0.3s ease-out;
+    }
+    
+    /* Scrollbar personalizado */
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #3B82F6 0%, #2563eb 100%);
+        border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    }
+    
+    /* Ajustes para tablas */
+    .stDataFrame {
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    /* Separadores */
+    hr {
+        margin: 2rem 0;
+        border: none;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, #e5e7eb, transparent);
+    }
+    
+    /* Headers con gradiente */
+    h1, h2, h3 {
+        background: linear-gradient(135deg, #3B82F6 0%, #8b5cf6 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        padding-bottom: 5px;
+    }
+    
+    h2 {
+        position: relative;
+        padding-bottom: 10px;
+    }
+    
+    h2:after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 60px;
+        height: 3px;
+        background: linear-gradient(90deg, #3B82F6, #8b5cf6);
+        border-radius: 2px;
+    }
+    
+    /* Cards para contenedores */
+    .card {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         transition: all 0.3s ease;
     }
-
-    .stButton > button:hover {
-        transform: translateY(-1px);
+    
+    .card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transform: translateY(-2px);
     }
-
-    /* Botones de eliminación (X rojo) */
-    button[key*="del_"] {
-        color: #EA001B !important;
-        border-color: #EA001B !important;
+    
+    /* Tooltips */
+    [data-tooltip] {
+        position: relative;
     }
-
-    button[key*="del_"]:hover {
-        background-color: rgba(234, 0, 27, 0.1) !important;
+    
+    [data-tooltip]:before {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        white-space: nowrap;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        z-index: 1000;
+    }
+    
+    [data-tooltip]:hover:before {
+        opacity: 1;
+        visibility: visible;
+        bottom: calc(100% + 8px);
     }
     </style>
     """
-
