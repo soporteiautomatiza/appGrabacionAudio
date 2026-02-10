@@ -1,5 +1,6 @@
 """
-Funciones centralizadas para mostrar notificaciones con toasts
+Funciones centralizadas para mostrar notificaciones con toasts.
+Sistema de notificaciones minimalista usando HTML + CSS puro.
 """
 import streamlit as st
 
