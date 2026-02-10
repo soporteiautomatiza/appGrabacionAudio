@@ -138,175 +138,134 @@ with col1:
                 st.session_state.upload_key_counter += 1
 
 with col2:
-    st.markdown('<h3 style="color: white;">Audios Guardados</h3>', unsafe_allow_html=True)
+    st.markdown('<h3 style="color: white;">🎵 Audios Guardados</h3>', unsafe_allow_html=True)
     
     # Refresh de la lista de audios desde Supabase cada vez que se renderiza (para sincronizar)
     recordings = recorder.get_recordings_from_supabase()
     st.session_state.recordings = recordings
     
     if recordings:
-        show_info_expanded(f"Total: {len(recordings)} audio(s)")
+        st.markdown(f"<p style='color: #888; font-size: 0.9rem;'>{len(recordings)} archivo(s)</p>", unsafe_allow_html=True)
         
         # BÚSQUEDA Y FILTRO DE AUDIOS EN TIEMPO REAL
         search_query = st.text_input(
             "🔍 Buscar audio:",
             placeholder="Nombre del archivo...",
-            key="audio_search"  # Se limpia automáticamente cuando el selectbox cambia
+            key="audio_search"
         )
         
         # Filtrar audios EN TIEMPO REAL mientras escribe
         if search_query.strip():
-            # Escapar caracteres especiales para evitar problemas con regex
             search_safe = re.escape(search_query.strip())
             filtered_recordings = [
                 r for r in recordings 
                 if search_safe.lower() in r.lower()
             ]
-            
-            # Mostrar resultados en tiempo real
-            if filtered_recordings:
-                st.markdown(f"**📌 {len(filtered_recordings)} resultado(s):**")
-                for recording in filtered_recordings:
-                    display_name = format_recording_name(recording)
-                    # Usar verificación DIRECTA para audios nuevos
-                    is_transcribed = is_audio_transcribed(recording, db_utils)
-                    transcribed_badge = " ✓ Transcrito" if is_transcribed else ""
-                    st.caption(f"🎵 {display_name}{transcribed_badge}")
-            else:
-                show_warning_expanded(f"No se encontraron audios con '{search_query}'")
         else:
             filtered_recordings = recordings
         
-        # Tabs para diferentes vistas
-        tab1, tab2 = st.tabs(["Transcribir", "Gestión en lote"])
-        
-        with tab1:
-            selected_audio = st.selectbox(
-                "Selecciona un audio para transcribir",
-                filtered_recordings,
-                format_func=lambda x: format_recording_name(x) + (
-                    " ✓ Transcrito" if is_audio_transcribed(x, db_utils) else ""
-                ),
-                key=f"selectbox_audio_{len(filtered_recordings)}"  # Key dinámico para reinicializar al cambiar lista
-            )
-            
-            if selected_audio:
-                # Cargar transcripción existente automáticamente si existe
-                # Usar always_load_transcription para forzar carga si viene de una eliminación
-                if selected_audio != st.session_state.get("loaded_audio"):
-                    existing_transcription = db_utils.get_transcription_by_filename(selected_audio)
-                    if existing_transcription:
-                        st.session_state.contexto = existing_transcription["content"]
-                        st.session_state.selected_audio = selected_audio
-                        st.session_state.loaded_audio = selected_audio
-                        st.session_state.chat_enabled = True
-                        st.session_state.keywords = {}
-                        add_debug_event(f"Transcripción cargada para '{selected_audio}'", "success")
-                    else:
-                        # Si no existe transcripción, marcar que se cargó este audio (pero sin transcripción)
-                        st.session_state.selected_audio = selected_audio
-                        st.session_state.loaded_audio = selected_audio
-                        st.session_state.chat_enabled = False
-                        st.session_state.contexto = None
-                        st.session_state.keywords = {}
+        if filtered_recordings:
+            # Mostrar audios en tarjetas visuales
+            for idx, recording in enumerate(filtered_recordings):
+                is_transcribed = is_audio_transcribed(recording, db_utils)
+                display_name = format_recording_name(recording)
                 
-                col_play, col_transcribe, col_delete = st.columns([1, 1, 1])
+                # Tarjeta de audio con diseño mejorado
+                card_html = f"""
+                <div style="
+                    background: rgba(30, 41, 56, 0.8);
+                    border: 1px solid rgba(99, 102, 241, 0.3);
+                    border-radius: 12px;
+                    padding: 16px;
+                    margin-bottom: 12px;
+                    transition: all 0.3s ease;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                ">
+                    <div style="flex-grow: 1;">
+                        <div style="color: white; font-weight: 500; margin-bottom: 4px;">
+                            {display_name}
+                        </div>
+                        <div style="color: #888; font-size: 0.85rem;">
+                            {recording.split('.')[-1].upper()} • {"Transcrito ✓" if is_transcribed else "Sin transcribir"}
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                    </div>
+                </div>
+                """
+                st.markdown(card_html, unsafe_allow_html=True)
+                
+                # Botones en fila debajo de la tarjeta
+                col_play, col_trans, col_copy, col_delete = st.columns([1, 1, 1, 1], gap="small")
                 
                 with col_play:
-                    if st.button("Reproducir"):
-                        audio_path = recorder.get_recording_path(selected_audio)
-                        extension = selected_audio.split('.')[-1]
+                    if st.button("▶ Play", key=f"play_{idx}_{recording}", use_container_width=True):
+                        audio_path = recorder.get_recording_path(recording)
+                        extension = recording.split('.')[-1]
                         with open(audio_path, "rb") as f:
                             st.audio(f.read(), format=f"audio/{extension}")
                 
-                with col_transcribe:
-                    if st.button("Transcribir"):
+                with col_trans:
+                    if st.button("📝 Transcribir", key=f"trans_{idx}_{recording}", use_container_width=True):
                         with st.spinner("Transcribiendo..."):
                             try:
-                                audio_path = recorder.get_recording_path(selected_audio)
+                                audio_path = recorder.get_recording_path(recording)
                                 transcription = transcriber_model.transcript_audio(audio_path)
                                 st.session_state.contexto = transcription.text
-                                st.session_state.selected_audio = selected_audio
-                                st.session_state.loaded_audio = selected_audio
+                                st.session_state.selected_audio = recording
+                                st.session_state.loaded_audio = recording
                                 st.session_state.chat_enabled = True
                                 st.session_state.keywords = {}
                                 
                                 # Guardar la transcripción en Supabase
                                 transcription_id = db_utils.save_transcription(
-                                    recording_filename=selected_audio,
+                                    recording_filename=recording,
                                     content=transcription.text,
                                     language="es"
                                 )
                                 
-                                add_debug_event(f"Transcripción completada para '{selected_audio}' (ID: {transcription_id})", "success")
+                                add_debug_event(f"Transcripción completada para '{recording}' (ID: {transcription_id})", "success")
+                                st.rerun()
                             except Exception as e:
                                 show_error_expanded(f"Error al transcribir: {e}")
                 
+                with col_copy:
+                    if st.button("📋 Copiar", key=f"copy_{idx}_{recording}", use_container_width=True):
+                        import pyperclip
+                        try:
+                            pyperclip.copy(recording)
+                            show_success_expanded("✓ Nombre copiado")
+                        except:
+                            st.info("Nombre: " + recording)
+                
                 with col_delete:
-                    if st.button("Eliminar", key=f"delete_{selected_audio}"):
-                        # Pedir confirmación
-                        st.session_state.delete_confirmation[selected_audio] = True
+                    if st.button("🗑 Eliminar", key=f"delete_{idx}_{recording}", use_container_width=True):
+                        st.session_state.delete_confirmation[recording] = True
+                
+                # Confirmación de eliminación
+                if st.session_state.delete_confirmation.get(recording):
+                    st.warning(f"⚠️ ¿Estás seguro de que deseas eliminar '{recording}'?")
+                    col_confirm, col_cancel = st.columns(2)
                     
-                    # Mostrar confirmación si está pendiente
-                    if st.session_state.delete_confirmation.get(selected_audio):
-                        st.warning(f"⚠️ ¿Eliminar '{selected_audio}'?")
-                        col_yes, col_no = st.columns(2)
-                        with col_yes:
-                            if st.button("✓ Sí, eliminar", key=f"confirm_yes_{selected_audio}"):
-                                if delete_audio(selected_audio, recorder, db_utils):
-                                    # Actualizar localmente SIN st.rerun() (100ms en lugar de 2s)
-                                    delete_recording_local(selected_audio)
-                                    st.session_state.chat_enabled = False
-                                    st.session_state.loaded_audio = None
-                                    st.session_state.selected_audio = None
-                                    st.session_state.delete_confirmation.pop(selected_audio, None)
-                                    show_success_expanded(f"✓ '{selected_audio}' eliminado")
-                                    add_debug_event(f"Audio '{selected_audio}' eliminado", "success")
-                                    st.rerun()  # ACTUALIZAR UI inmediatamente
-                        with col_no:
-                            if st.button("✗ Cancelar", key=f"confirm_no_{selected_audio}"):
-                                st.session_state.delete_confirmation.pop(selected_audio, None)
-                                st.rerun()  # ACTUALIZAR UI inmediatamente
-        
-        with tab2:
-            st.subheader("Eliminar múltiples audios")
-            st.write("Selecciona uno o varios audios para eliminarlos")
-            
-            audios_to_delete = st.multiselect(
-                "Audios a eliminar:",
-                filtered_recordings,
-                format_func=lambda x: format_recording_name(x)
-            )
-            
-            if audios_to_delete:
-                show_warning_expanded(f"Vas a eliminar {len(audios_to_delete)} audio(s)")
-                
-                st.write("**Audios seleccionados:**")
-                for audio in audios_to_delete:
-                    st.write(f"  • {audio}")
-                
-                col_confirm, col_cancel = st.columns(2)
-                with col_confirm:
-                    if st.button("Eliminar seleccionados", type="primary", use_container_width=True, key="delete_batch"):
-                        with st.spinner(f"⏳ Eliminando {len(audios_to_delete)} audio(s)..."):
-                            deleted_count = 0
-                            
-                            # Eliminar todos localmente primero para respuesta inmediata
-                            for audio in audios_to_delete:
-                                if delete_audio(audio, recorder, db_utils):
-                                    delete_recording_local(audio)  # Actualizar sesión localmente
-                                    deleted_count += 1
-                            
-                            # Limpiar estado de sesión
-                            st.session_state.chat_enabled = False
-                            st.session_state.selected_audio = None
-                            
-                            if deleted_count > 0:
-                                show_success_expanded(f"✓ {deleted_count} audio(s) eliminado(s) - Actualización instantánea")
-                                st.rerun()  # ACTUALIZAR UI inmediatamente
-                
-                with col_cancel:
-                    st.write("")
+                    with col_confirm:
+                        if st.button("✓ Sí, eliminar", key=f"confirm_yes_{idx}_{recording}"):
+                            if delete_audio(recording, recorder, db_utils):
+                                delete_recording_local(recording)
+                                st.session_state.chat_enabled = False
+                                st.session_state.loaded_audio = None
+                                st.session_state.selected_audio = None
+                                st.session_state.delete_confirmation.pop(recording, None)
+                                add_debug_event(f"Audio '{recording}' eliminado", "success")
+                                st.rerun()
+                    
+                    with col_cancel:
+                        if st.button("✗ Cancelar", key=f"confirm_no_{idx}_{recording}"):
+                            st.session_state.delete_confirmation.pop(recording, None)
+                            st.rerun()
+        else:
+            show_warning_expanded(f"No se encontraron audios con '{search_query}'")
     else:
         show_info_expanded("No hay audios guardados. Sube un archivo.")
 
