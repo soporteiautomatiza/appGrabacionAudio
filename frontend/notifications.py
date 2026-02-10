@@ -290,7 +290,7 @@ def show_delete_confirmation_modal(item_name: str, item_type: str = "elemento") 
 
 def show_delete_confirmation_buttons(item_name: str, item_type: str = "elemento", key_prefix: str = "") -> tuple[bool, bool]:
     """
-    Mostrar modal de confirmación bonito CON BOTONES DENTRO del modal.
+    Mostrar modal de confirmación bonito con botones.
     
     Args:
         item_name: Nombre del elemento a eliminar
@@ -303,7 +303,7 @@ def show_delete_confirmation_buttons(item_name: str, item_type: str = "elemento"
     # CSS del modal
     st.markdown(f"""
     <style>
-        .delete-modal-overlay-{key_prefix} {{
+        .delete-modal-overlay {{
             position: fixed;
             top: 0;
             left: 0;
@@ -313,9 +313,8 @@ def show_delete_confirmation_buttons(item_name: str, item_type: str = "elemento"
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 9990;
+            z-index: 9999;
             animation: fadeIn 0.25s ease-out;
-            pointer-events: auto;
         }}
         
         @keyframes fadeIn {{
@@ -334,12 +333,11 @@ def show_delete_confirmation_buttons(item_name: str, item_type: str = "elemento"
             }}
         }}
         
-        .delete-modal-content-{key_prefix} {{
+        .delete-modal-content {{
             background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 20px;
             padding: 40px;
-            padding-bottom: 130px;
             max-width: 450px;
             width: 92%;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9), 
@@ -349,7 +347,6 @@ def show_delete_confirmation_buttons(item_name: str, item_type: str = "elemento"
             animation: slideUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
             text-align: center;
             font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;
-            position: relative;
         }}
         
         .delete-modal-icon {{
@@ -396,29 +393,15 @@ def show_delete_confirmation_buttons(item_name: str, item_type: str = "elemento"
         .delete-modal-warning {{
             font-size: 12px;
             color: #9ca3af;
-            margin-bottom: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
         }}
-        
-        .delete-modal-buttons-wrapper-{key_prefix} {{
-            margin-top: -110px;
-            position: relative;
-            z-index: 9991;
-            display: flex;
-            gap: 8px;
-            padding: 0 0;
-        }}
-        
-        .delete-modal-buttons-wrapper-{key_prefix} [data-testid="stButton"] {{
-            flex: 1;
-        }}
     </style>
     
-    <div class="delete-modal-overlay-{key_prefix}">
-        <div class="delete-modal-content-{key_prefix}">
+    <div class="delete-modal-overlay">
+        <div class="delete-modal-content">
             <div class="delete-modal-icon">⚠️</div>
             <div class="delete-modal-title">¿Eliminar {item_type}?</div>
             <div class="delete-modal-message">Esta acción no se puede deshacer</div>
@@ -431,9 +414,10 @@ def show_delete_confirmation_buttons(item_name: str, item_type: str = "elemento"
     </div>
     """, unsafe_allow_html=True)
     
-    # Botones posicionados visualmente dentro del modal
-    st.markdown(f'<div class="delete-modal-buttons-wrapper-{key_prefix}">', unsafe_allow_html=True)
+    # Espacio para que no se solape
+    st.markdown("")
     
+    # Botones de confirmación - simples y funcionales
     col1, col2 = st.columns(2, gap="small")
     confirmed = False
     cancelled = False
@@ -445,8 +429,6 @@ def show_delete_confirmation_buttons(item_name: str, item_type: str = "elemento"
     with col2:
         if st.button("✕ Cancelar", key=f"cancel_{key_prefix}", use_container_width=True):
             cancelled = True
-    
-    st.markdown('</div>', unsafe_allow_html=True)
     
     return confirmed, cancelled
 
