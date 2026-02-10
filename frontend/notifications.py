@@ -122,6 +122,7 @@ def _show_toast(message: str, notification_type: str, duration: int = 3) -> None
             height: 24px;
             opacity: 0.7;
             transition: opacity 0.2s;
+            flex-shrink: 0;
         }}
         
         .toast-close:hover {{
@@ -137,17 +138,38 @@ def _show_toast(message: str, notification_type: str, duration: int = 3) -> None
         <div class="toast-content">
             <span>{icon}</span> {message}
         </div>
-        <button class="toast-close" onclick="document.getElementById('toast-{toast_id}').classList.add('fade-out'); setTimeout(() => document.getElementById('toast-{toast_id}').remove(), 300);">✕</button>
+        <button class="toast-close" type="button" data-toast-id="toast-{toast_id}">✕</button>
     </div>
     
     <script>
-        setTimeout(() => {{
-            const toast = document.getElementById('toast-{toast_id}');
-            if (toast && !toast.classList.contains('fade-out')) {{
+    (function() {{
+        function closeToast(toastId) {{
+            const toast = document.getElementById(toastId);
+            if (toast) {{
                 toast.classList.add('fade-out');
-                setTimeout(() => toast.remove(), 300);
+                setTimeout(() => {{
+                    if (toast.parentNode) {{
+                        toast.parentNode.removeChild(toast);
+                    }}
+                }}, 300);
             }}
+        }}
+        
+        // Attachar listeners a botones de cierre
+        const closeBtn = document.querySelector('[data-toast-id="toast-{toast_id}"]');
+        if (closeBtn) {{
+            closeBtn.addEventListener('click', function(e) {{
+                e.preventDefault();
+                e.stopPropagation();
+                closeToast('toast-{toast_id}');
+            }});
+        }}
+        
+        // Auto-cierre después de 2 segundos
+        setTimeout(() => {{
+            closeToast('toast-{toast_id}');
         }}, 2000);
+    }})();
     </script>
     """, unsafe_allow_html=True)
 
