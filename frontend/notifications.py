@@ -170,3 +170,267 @@ def _show_debug_notification(message: str, notification_type: str) -> None:
     </div>
     """, unsafe_allow_html=True)
 
+
+def show_delete_confirmation_modal(item_name: str, item_type: str = "elemento") -> tuple[bool, bool]:
+    """
+    Mostrar un modal bonito de confirmación para eliminar.
+    
+    Args:
+        item_name: Nombre del elemento a eliminar
+        item_type: Tipo de elemento (audio, ticket, palabra clave, etc.)
+    
+    Returns:
+        Tupla (confirmed: bool, cancelled: bool)
+    """
+    
+    # Crear modal con CSS personalizado
+    modal_html = f"""
+    <style>
+        .delete-modal-overlay {{
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            animation: fadeIn 0.2s ease-in-out;
+        }}
+        
+        @keyframes fadeIn {{
+            from {{ opacity: 0; }}
+            to {{ opacity: 1; }}
+        }}
+        
+        @keyframes slideUp {{
+            from {{
+                opacity: 0;
+                transform: translateY(30px);
+            }}
+            to {{
+                opacity: 1;
+                transform: translateY(0);
+            }}
+        }}
+        
+        .delete-modal-content {{
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 420px;
+            width: 90%;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8), inset 1px 1px 0 rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            animation: slideUp 0.3s ease-out;
+            text-align: center;
+        }}
+        
+        .delete-modal-icon {{
+            font-size: 48px;
+            margin-bottom: 16px;
+            display: inline-block;
+        }}
+        
+        .delete-modal-title {{
+            font-size: 20px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 8px;
+            font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;
+        }}
+        
+        .delete-modal-message {{
+            font-size: 14px;
+            color: #9ca3af;
+            margin-bottom: 24px;
+            line-height: 1.6;
+            font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;
+        }}
+        
+        .delete-modal-item {{
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 24px;
+            font-weight: 600;
+            color: #fca5a5;
+            word-break: break-word;
+            font-family: monospace;
+            font-size: 13px;
+        }}
+        
+        .delete-modal-buttons {{
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }}
+    </style>
+    
+    <div class="delete-modal-overlay">
+        <div class="delete-modal-content">
+            <div class="delete-modal-icon">⚠️</div>
+            <div class="delete-modal-title">¿Eliminar {item_type}?</div>
+            <div class="delete-modal-message">Esta acción no se puede deshacer. Se eliminará permanentemente:</div>
+            <div class="delete-modal-item">{item_name}</div>
+        </div>
+    </div>
+    """
+    
+    st.markdown(modal_html, unsafe_allow_html=True)
+    
+    # Retornar False, False para que se maneje con st.columns y botones
+    # El modal se muestra en el HTML pero necesitamos componentes Streamlit para la interacción
+    return False, False
+
+
+def show_delete_confirmation_buttons(item_name: str, item_type: str = "elemento", key_prefix: str = "") -> tuple[bool, bool]:
+    """
+    Mostrar modal de confirmación bonito con botones.
+    
+    Args:
+        item_name: Nombre del elemento a eliminar
+        item_type: Tipo de elemento
+        key_prefix: Prefijo para las keys de los botones
+    
+    Returns:
+        Tupla (confirmed: bool, cancelled: bool)
+    """
+    # Modal HTML bonito
+    modal_html = f"""
+    <style>
+        .delete-modal-overlay {{
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            animation: fadeIn 0.25s ease-out;
+        }}
+        
+        @keyframes fadeIn {{
+            from {{ opacity: 0; }}
+            to {{ opacity: 1; }}
+        }}
+        
+        @keyframes slideUp {{
+            from {{
+                opacity: 0;
+                transform: translateY(40px) scale(0.95);
+            }}
+            to {{
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }}
+        }}
+        
+        .delete-modal-content {{
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 450px;
+            width: 92%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9), 
+                        inset 1px 1px 0 rgba(255, 255, 255, 0.05),
+                        0 0 40px rgba(239, 68, 68, 0.1);
+            backdrop-filter: blur(10px);
+            animation: slideUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            text-align: center;
+            font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;
+        }}
+        
+        .delete-modal-icon {{
+            font-size: 56px;
+            margin-bottom: 20px;
+            display: inline-block;
+            animation: bounce 0.6s ease-out;
+        }}
+        
+        @keyframes bounce {{
+            0% {{ transform: scale(0); }}
+            50% {{ transform: scale(1.1); }}
+            100% {{ transform: scale(1); }}
+        }}
+        
+        .delete-modal-title {{
+            font-size: 22px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }}
+        
+        .delete-modal-message {{
+            font-size: 14px;
+            color: #d1d5db;
+            margin-bottom: 28px;
+            line-height: 1.7;
+        }}
+        
+        .delete-modal-item {{
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05));
+            border: 1.5px solid rgba(239, 68, 68, 0.4);
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 28px;
+            font-weight: 600;
+            color: #fca5a5;
+            word-break: break-word;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            background-clip: padding-box;
+        }}
+        
+        .delete-modal-warning {{
+            font-size: 12px;
+            color: #9ca3af;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }}
+    </style>
+    
+    <div class="delete-modal-overlay">
+        <div class="delete-modal-content">
+            <div class="delete-modal-icon">⚠️</div>
+            <div class="delete-modal-title">¿Eliminar {item_type}?</div>
+            <div class="delete-modal-message">Esta acción no se puede deshacer</div>
+            <div class="delete-modal-item">{item_name}</div>
+            <div class="delete-modal-warning">
+                <span>⚡</span>
+                <span>Eliminación permanente</span>
+            </div>
+        </div>
+    </div>
+    """
+    
+    st.markdown(modal_html, unsafe_allow_html=True)
+    
+    # Mostrar botones
+    col1, col2 = st.columns(2, gap="small")
+    
+    confirmed = False
+    cancelled = False
+    
+    with col1:
+        if st.button("🗑️ Sí, eliminar", key=f"confirm_{key_prefix}", use_container_width=True, type="primary"):
+            confirmed = True
+    
+    with col2:
+        if st.button("✕ Cancelar", key=f"cancel_{key_prefix}", use_container_width=True):
+            cancelled = True
+    
+    return confirmed, cancelled
+
