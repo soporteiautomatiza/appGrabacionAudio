@@ -213,6 +213,23 @@ def update_transcription(db, recording_id: str, transcription: str) -> bool:
     ))
 
 @db_operation
+def update_recording_filename(db, old_filename: str, new_filename: str) -> bool:
+    """Actualiza el nombre del archivo de grabación"""
+    try:
+        result = _execute_table_operation(
+            db, "recordings", "update",
+            filters={"filename": old_filename},
+            data={"filename": new_filename, "updated_at": datetime.now().isoformat()}
+        )
+        if result:
+            logger.info(f"✓ Nombre actualizado: {old_filename} → {new_filename}")
+            return True
+        return False
+    except Exception as e:
+        logger.error(f"❌ Error al actualizar nombre: {e}")
+        return False
+
+@db_operation
 def save_opportunity(db, recording_id: str, title: str, description: str) -> bool:
     """Guarda oportunidad"""
     return bool(_execute_table_operation(
