@@ -397,24 +397,20 @@ with col_right:
                 # Controles de paginación (solo si hay más de 1 página)
                 if total_pages > 1:
                     st.markdown("---")
-                    col_prev, col_info, col_next = st.columns([1, 2, 1])
                     
-                    with col_prev:
-                        if st.button("← Anterior", disabled=(st.session_state.audio_page == 0), use_container_width=True):
-                            st.session_state.audio_page -= 1
-                            st.rerun()
-                    
-                    with col_info:
-                        st.markdown(f'''
-                        <div style="text-align: center; padding: 8px; color: var(--muted-foreground);">
-                            Página {st.session_state.audio_page + 1} de {total_pages}
-                        </div>
-                        ''', unsafe_allow_html=True)
-                    
-                    with col_next:
-                        if st.button("Siguiente →", disabled=(st.session_state.audio_page >= total_pages - 1), use_container_width=True):
-                            st.session_state.audio_page += 1
-                            st.rerun()
+                    # Crear botones de paginación
+                    col_buttons = st.columns(total_pages)
+                    for page_num in range(total_pages):
+                        with col_buttons[page_num]:
+                            button_style = "active" if page_num == st.session_state.audio_page else ""
+                            if st.button(
+                                str(page_num + 1),
+                                key=f"audio_page_{page_num}",
+                                use_container_width=True,
+                                disabled=(page_num == st.session_state.audio_page)
+                            ):
+                                st.session_state.audio_page = page_num
+                                st.rerun()
             else:
                 st.info(f"No se encontraron grabaciones para '{search_query}'")
         
@@ -671,24 +667,19 @@ if st.session_state.get("chat_enabled", False):
         # Controles de paginación de tickets
         if total_pages > 1:
             st.markdown("---")
-            col_prev, col_info, col_next = st.columns([1, 2, 1])
             
-            with col_prev:
-                if st.button("← Anterior", key="tickets_prev", disabled=(st.session_state.tickets_page == 0), use_container_width=True):
-                    st.session_state.tickets_page -= 1
-                    st.rerun()
-            
-            with col_info:
-                st.markdown(f'''
-                <div style="text-align: center; padding: 8px; color: var(--muted-foreground);">
-                    Página {st.session_state.tickets_page + 1} de {total_pages}
-                </div>
-                ''', unsafe_allow_html=True)
-            
-            with col_next:
-                if st.button("Siguiente →", key="tickets_next", disabled=(st.session_state.tickets_page >= total_pages - 1), use_container_width=True):
-                    st.session_state.tickets_page += 1
-                    st.rerun()
+            # Crear botones de paginación
+            col_buttons = st.columns(total_pages)
+            for page_num in range(total_pages):
+                with col_buttons[page_num]:
+                    if st.button(
+                        str(page_num + 1),
+                        key=f"ticket_page_{page_num}",
+                        use_container_width=True,
+                        disabled=(page_num == st.session_state.tickets_page)
+                    ):
+                        st.session_state.tickets_page = page_num
+                        st.rerun()
 
 st.markdown("")
 st.markdown("")
