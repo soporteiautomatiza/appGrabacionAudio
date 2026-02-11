@@ -115,4 +115,3 @@ RATE_LIMIT_TOKENS = int(os.getenv("RATE_LIMIT_TOKENS", "100"))  # Tokens en buck
 MAX_FILENAME_LENGTH = int(os.getenv("MAX_FILENAME_LENGTH", "255"))
 MAX_KEYWORD_LENGTH = int(os.getenv("MAX_KEYWORD_LENGTH", "100"))
 MAX_SEARCH_LENGTH = int(os.getenv("MAX_SEARCH_LENGTH", "200"))
-MAX_TEXT_LENGTH = int(os.getenv("MAX_TEXT_LENGTH", "5000"))

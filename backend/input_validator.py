@@ -141,9 +141,6 @@ class InputValidator:
         if len(text) == 0:
             return False, "Transcripción vacía"
         
-        if len(text) > InputValidator.MAX_TEXT_LENGTH:
-            return False, f"Transcripción muy larga (máx {InputValidator.MAX_TEXT_LENGTH} caracteres)"
-        
         logger.debug(f"✓ Transcription validado: {len(text)} caracteres")
         return True, None
     
