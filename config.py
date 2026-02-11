@@ -100,19 +100,3 @@ REFRESH_INTERVAL_SECONDS = 5  # Intervalo de refresco de datos
 
 # Configuración de cache
 CACHE_TTL_MINUTES = 10  # Tiempo de vida del cache en minutos
-
-# ============================================================================
-# SEGURIDAD - RATE LIMITING
-# ============================================================================
-# Límite de llamadas a Gemini API
-RATE_LIMIT_CALLS = int(os.getenv("RATE_LIMIT_CALLS", "10"))  # Máx llamadas
-RATE_LIMIT_WINDOW = int(os.getenv("RATE_LIMIT_WINDOW", "60"))  # En segundos (1 minuto)
-RATE_LIMIT_TOKENS = int(os.getenv("RATE_LIMIT_TOKENS", "100"))  # Tokens en bucket
-
-# ============================================================================
-# SEGURIDAD - VALIDACIÓN DE ENTRADA
-# ============================================================================
-MAX_FILENAME_LENGTH = int(os.getenv("MAX_FILENAME_LENGTH", "255"))
-MAX_KEYWORD_LENGTH = int(os.getenv("MAX_KEYWORD_LENGTH", "100"))
-MAX_SEARCH_LENGTH = int(os.getenv("MAX_SEARCH_LENGTH", "200"))
-MAX_TEXT_LENGTH = int(os.getenv("MAX_TEXT_LENGTH", "5000"))

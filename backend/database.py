@@ -176,25 +176,6 @@ def delete_audio_from_storage(db, filename: str) -> bool:
         return False
 
 @db_operation
-def move_audio_in_storage(db, old_filename: str, new_filename: str) -> bool:
-    """Mueve/renombra un archivo en Supabase Storage"""
-    try:
-        # Descargar archivo con nombre antiguo
-        response = db.storage.from_("recordings").download(old_filename)
-        
-        # Subir con nombre nuevo
-        db.storage.from_("recordings").upload(new_filename, response, {"upsert": "true"})
-        
-        # Eliminar archivo antiguo
-        db.storage.from_("recordings").remove([old_filename])
-        
-        logger.info(f"✓ Storage: {old_filename} → {new_filename}")
-        return True
-    except Exception as e:
-        logger.error(f"❌ Error al mover en Storage: {type(e).__name__}")
-        return False
-
-@db_operation
 def save_recording_to_db(db, filename: str, filepath: str, transcription: Optional[str] = None) -> Optional[str]:
     """Sube a Storage + guarda en BD"""
     logger.info(f"[1/2] Storage: {filename}")
@@ -303,19 +284,6 @@ def get_transcription_by_filename(db, recording_filename: str) -> Optional[Dict]
         return trans.data[0] if trans.data else None
     except:
         return None
-
-@db_operation
-def rename_recording_in_db(db, old_filename: str, new_filename: str) -> bool:
-    """Renombra una grabación en la base de datos"""
-    try:
-        result = db.table("recordings").update({
-            "filename": new_filename,
-            "updated_at": datetime.now().isoformat()
-        }).eq("filename", old_filename).execute()
-        return True
-    except Exception as e:
-        logger.error(f"Error al renombrar en BD: {e}")
-        return False
 
 @db_operation
 def delete_transcription_by_id(db, transcription_id: str) -> bool:
