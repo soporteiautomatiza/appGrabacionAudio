@@ -57,7 +57,9 @@ def initialize_session_state(recorder_obj: AudioRecorder) -> None:
         "audio_page": 0,  # Página actual para paginación de audios
         "tickets_page": 0, # Página actual para paginación de tickets
         "editing_audio": None,  # Archivo siendo editado
-        "new_audio_name": ""  # Nuevo nombre del archivo
+        "new_audio_name": "",  # Nuevo nombre del archivo
+        "generating_summary": False,  # Flag para generar resumen
+        "summary_text": None  # Texto del resumen generado
     }
     
     for key, value in session_defaults.items():
@@ -462,6 +464,44 @@ if st.session_state.get("chat_enabled", False) and st.session_state.get("context
     # Mostrar transcripción en un contenedor
     with st.container(border=True):
         st.text_area("", st.session_state.contexto, height=200, disabled=True, label_visibility="collapsed")
+    
+    # Botón para generar resumen
+    col_summary_btn, col_space = st.columns([1, 4])
+    with col_summary_btn:
+        if st.button("📝 Generar Resumen", use_container_width=True, type="secondary"):
+            st.session_state.generating_summary = True
+            st.rerun()
+    
+    # Mostrar resumen si se está generando o existe
+    if st.session_state.get("generating_summary"):
+        with st.spinner("Generando resumen con IA..."):
+            try:
+                resumen = chat_model.chat(f"Por favor, genera un resumen conciso y profesional de la siguiente transcripción. El resumen debe incluir: 1) Tema principal, 2) Puntos clave, 3) Decisiones o acciones importantes. Aquí está la transcripción:\n\n{st.session_state.contexto}")
+                st.session_state.summary_text = resumen
+                st.session_state.generating_summary = False
+                st.rerun()
+            except Exception as e:
+                show_error_expanded(f"Error al generar resumen: {str(e)}")
+                st.session_state.generating_summary = False
+    
+    # Mostrar resumen si existe
+    if st.session_state.get("summary_text"):
+        st.markdown('<h3 style="color: white; margin-top: 20px;">📋 Resumen Generado</h3>', unsafe_allow_html=True)
+        with st.container(border=True):
+            st.markdown(st.session_state.summary_text)
+        
+        # Opciones de resumen
+        col_copy, col_clear = st.columns([1, 1])
+        with col_copy:
+            if st.button("📋 Copiar Resumen", use_container_width=True):
+                st.text_area("Copiar:", st.session_state.summary_text, height=100, disabled=True)
+                show_success_expanded("Resumen listo para copiar")
+        with col_clear:
+            if st.button("🗑️ Limpiar Resumen", use_container_width=True):
+                st.session_state.summary_text = None
+                st.rerun()
+        
+        st.markdown("")
                     
     
     # SECCIÓN DE PALABRAS CLAVE
