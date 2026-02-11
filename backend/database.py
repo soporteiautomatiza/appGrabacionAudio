@@ -214,17 +214,73 @@ def update_transcription(db, recording_id: str, transcription: str) -> bool:
 
 @db_operation
 def update_recording_filename(db, old_filename: str, new_filename: str) -> bool:
-    """Actualiza el nombre del archivo de grabación"""
+    """
+    Actualiza el nombre del archivo de grabación en Supabase Storage y BD.
+    
+    Realiza:
+    1. Descargar archivo de Storage con nombre antiguo
+    2. Subir a Storage con nombre nuevo
+    3. Eliminar archivo antiguo de Storage
+    4. Actualizar BD con nuevo nombre
+    """
     try:
+        # 1. Descargar archivo con nombre antiguo
+        logger.info(f"[1/4] Descargando {old_filename} de Storage...")
+        try:
+            audio_data = db.storage.from_("recordings").download(old_filename)
+            if not audio_data:
+                logger.error(f"❌ No se pudo descargar {old_filename}")
+                return False
+        except Exception as e:
+            logger.error(f"❌ Error descargando: {e}")
+            return False
+        
+        # 2. Subir a Storage con nombre nuevo
+        logger.info(f"[2/4] Subiendo como {new_filename}...")
+        try:
+            db.storage.from_("recordings").upload(
+                new_filename, 
+                audio_data, 
+                {"upsert": "false"}  # No sobrescribir si ya existe
+            )
+        except Exception as e:
+            logger.error(f"❌ Error subiendo: {e}")
+            return False
+        
+        # 3. Eliminar archivo antiguo de Storage
+        logger.info(f"[3/4] Eliminando {old_filename} de Storage...")
+        try:
+            db.storage.from_("recordings").remove([old_filename])
+        except Exception as e:
+            logger.warning(f"⚠️  Error eliminando archivo antiguo: {e}")
+            # No es crítico, continuamos
+        
+        # 4. Actualizar BD
+        logger.info(f"[4/4] Actualizando BD...")
         result = _execute_table_operation(
             db, "recordings", "update",
             filters={"filename": old_filename},
             data={"filename": new_filename, "updated_at": datetime.now().isoformat()}
         )
+        
         if result:
-            logger.info(f"✓ Nombre actualizado: {old_filename} → {new_filename}")
+            logger.info(f"✓ Nombre actualizado completamente: {old_filename} → {new_filename}")
             return True
-        return False
+        else:
+            # Si la BD falla, intentar revertir en Storage
+            logger.error("❌ Error actualizando BD. Revertiendo cambios en Storage...")
+            try:
+                db.storage.from_("recordings").remove([new_filename])
+                # Re-subir con nombre antiguo
+                db.storage.from_("recordings").upload(
+                    old_filename, 
+                    audio_data, 
+                    {"upsert": "true"}
+                )
+            except:
+                logger.error("❌ Error al revertir. Storage podría estar en estado inconsistente")
+            return False
+            
     except Exception as e:
         logger.error(f"❌ Error al actualizar nombre: {e}")
         return False
