@@ -13,7 +13,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from config import MAX_AUDIO_SIZE_MB
 from logger import get_logger
 from frontend.notifications import show_success, show_error, show_success_debug
-from input_validator import validator
 import streamlit as st
 
 logger = get_logger(__name__)

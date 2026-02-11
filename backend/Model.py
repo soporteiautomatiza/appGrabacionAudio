@@ -6,8 +6,6 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from config import GEMINI_API_KEY, CHAT_MODEL
 from logger import get_logger
-from rate_limiter import gemini_limiter
-from input_validator import validator
 
 logger = get_logger(__name__)
 genai.configure(api_key=GEMINI_API_KEY)
