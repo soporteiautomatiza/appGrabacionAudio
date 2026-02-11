@@ -326,47 +326,23 @@ with col_right:
                     is_transcribed = is_audio_transcribed(recording, db_utils)
                     transcribed_badge = components.render_badge("Transcrito", "transcribed") if is_transcribed else ""
                     
-                    # Crear columnas para el audio y el botón de editar
-                    col_info, col_edit = st.columns([0.9, 0.1])
-                    
-                    with col_info:
-                        st.markdown(f'''
-                        <div class="glass-card-hover" style="padding: 12px; margin: 8px 0; border-radius: 12px; background: rgba(42, 45, 62, 0.5); border: 1px solid rgba(139, 92, 246, 0.1); cursor: pointer;">
-                            <div>
-                                <div style="font-weight: 600; margin-bottom: 4px;">{display_name} {transcribed_badge}</div>
-                                <div style="font-size: 11px; color: var(--muted-foreground);">Selecciona en la pestaña "Transcribir"</div>
-                            </div>
-                        </div>
-                        ''', unsafe_allow_html=True)
-                    
-                    with col_edit:
-                        # Botón para editar
-                        if st.button("✏️", key=f"edit_btn_{recording}", help="Renombrar audio"):
-                            st.session_state.editing_audio = recording
-                            st.session_state.new_audio_name = format_recording_name(recording).replace(" [Transcrito]", "")
-                            st.rerun()
-                    
-                    # Mostrar formulario de edición si está activo
+                    # Verificar si este audio está siendo editado
                     if st.session_state.editing_audio == recording:
-                        st.markdown("---")
-                        st.markdown("**Renombrar audio**")
+                        # Modo edición: input + botones confirmación
+                        col_input, col_confirm, col_cancel = st.columns([0.75, 0.125, 0.125])
                         
-                        # Campo de entrada para el nuevo nombre
-                        new_name = st.text_input(
-                            "Nuevo nombre",
-                            value=st.session_state.new_audio_name,
-                            key=f"rename_input_{recording}",
-                            placeholder="Escribe el nuevo nombre..."
-                        )
-                        
-                        # Actualizar el valor en session_state
-                        st.session_state.new_audio_name = new_name
-                        
-                        # Botones de confirmar y cancelar
-                        col_confirm, col_cancel = st.columns(2)
+                        with col_input:
+                            new_name = st.text_input(
+                                "Nuevo nombre",
+                                value=st.session_state.new_audio_name,
+                                key=f"rename_input_{recording}",
+                                placeholder="Escribe el nuevo nombre...",
+                                label_visibility="collapsed"
+                            )
+                            st.session_state.new_audio_name = new_name
                         
                         with col_confirm:
-                            if st.button("✓ Confirmar", key=f"confirm_rename_{recording}", use_container_width=True):
+                            if st.button("✓", key=f"confirm_rename_{recording}", help="Confirmar", use_container_width=True):
                                 if new_name.strip():
                                     # Agregar extensión si no la tiene
                                     old_ext = Path(recording).suffix
@@ -379,24 +355,40 @@ with col_right:
                                     success = db_utils.update_recording_filename(recording, new_filename)
                                     
                                     if success:
-                                        # Actualizar la lista de grabaciones
                                         st.session_state.recordings = recorder.get_recordings_from_supabase()
                                         st.session_state.editing_audio = None
                                         st.session_state.new_audio_name = ""
-                                        show_success(f"✓ Audio renombrado a: {new_filename}")
+                                        show_success(f"✓ Renombrado a: {new_filename}")
                                         st.rerun()
                                     else:
-                                        show_error("❌ Error al renombrar el audio")
+                                        show_error("Error al renombrar")
                                 else:
                                     show_warning("El nombre no puede estar vacío")
                         
                         with col_cancel:
-                            if st.button("✕ Cancelar", key=f"cancel_rename_{recording}", use_container_width=True):
+                            if st.button("✕", key=f"cancel_rename_{recording}", help="Cancelar", use_container_width=True):
                                 st.session_state.editing_audio = None
                                 st.session_state.new_audio_name = ""
                                 st.rerun()
+                    else:
+                        # Modo normal: mostrar audio con botón lápiz
+                        col_info, col_edit = st.columns([0.9, 0.1])
                         
-                        st.markdown("---")
+                        with col_info:
+                            st.markdown(f'''
+                            <div class="glass-card-hover" style="padding: 12px; margin: 8px 0; border-radius: 12px; background: rgba(42, 45, 62, 0.5); border: 1px solid rgba(139, 92, 246, 0.1); cursor: pointer;">
+                                <div>
+                                    <div style="font-weight: 600; margin-bottom: 4px;">{display_name} {transcribed_badge}</div>
+                                    <div style="font-size: 11px; color: var(--muted-foreground);">Selecciona en la pestaña "Transcribir"</div>
+                                </div>
+                            </div>
+                            ''', unsafe_allow_html=True)
+                        
+                        with col_edit:
+                            if st.button("✏️", key=f"edit_btn_{recording}", help="Renombrar"):
+                                st.session_state.editing_audio = recording
+                                st.session_state.new_audio_name = format_recording_name(recording).replace(" [Transcrito]", "")
+                                st.rerun()
                 
                 st.markdown('</div>', unsafe_allow_html=True)
                 
