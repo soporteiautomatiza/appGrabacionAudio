@@ -163,13 +163,8 @@ with col_right:
             # Filtrar audios (reutilizar la búsqueda si existe)
             search_query = st.session_state.get("audio_search", "")
             
-            # ===== VALIDAR BÚSQUEDA =====
-            valid, error = validator.validate_search_query(search_query)
-            if not valid:
-                show_error(f"Búsqueda inválida: {error}")
-                filtered_recordings = recordings
-            elif search_query and search_query.strip():
-                # Búsqueda válida: aplicar filtro
+            if search_query and search_query.strip():
+                # Aplicar filtro de búsqueda
                 search_safe = re.escape(search_query.strip())
                 filtered_recordings = [
                     r for r in recordings 
