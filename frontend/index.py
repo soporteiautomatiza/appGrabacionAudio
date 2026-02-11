@@ -2,7 +2,6 @@ import streamlit as st
 import sys
 import re
 from pathlib import Path
-import pyperclip
 
 # Agregar carpetas al path para importar módulos
 app_root = Path(__file__).parent.parent
@@ -497,12 +496,36 @@ if st.session_state.get("chat_enabled", False) and st.session_state.get("context
         # Opciones de resumen
         col_copy, col_clear = st.columns([1, 1])
         with col_copy:
-            if st.button("📋 Copiar Resumen", use_container_width=True, key="copy_summary"):
-                try:
-                    pyperclip.copy(st.session_state.summary_text)
-                    show_success_expanded("✓ Resumen copiado al portapapeles")
-                except Exception as e:
-                    show_error_expanded(f"Error al copiar: {str(e)}")
+            # Botón para copiar con JavaScript nativo
+            copy_button_html = f"""
+            <button 
+                onclick="
+                    const text = `{st.session_state.summary_text.replace(chr(96), '').replace('"', '\\"')}`;
+                    navigator.clipboard.writeText(text).then(() => {{
+                        alert('✓ Resumen copiado al portapapeles');
+                    }}).catch(() => {{
+                        alert('Error al copiar');
+                    }});
+                "
+                style="
+                    width: 100%;
+                    padding: 10px 20px;
+                    background: linear-gradient(135deg, #0052CC 0%, #003d99 100%);
+                    color: white;
+                    border: none;
+                    border-radius: 6px;
+                    font-size: 16px;
+                    font-weight: 500;
+                    cursor: pointer;
+                    transition: 0.3s;
+                "
+                onmouseover="this.style.opacity='0.8'"
+                onmouseout="this.style.opacity='1'"
+            >
+                📋 Copiar Resumen
+            </button>
+            """
+            st.markdown(copy_button_html, unsafe_allow_html=True)
         with col_clear:
             if st.button("🗑️ Limpiar Resumen", use_container_width=True):
                 st.session_state.summary_text = None
