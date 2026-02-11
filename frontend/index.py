@@ -377,14 +377,16 @@ with col_right:
                         with col_info:
                             st.markdown(f'''
                             <div class="glass-card-hover" style="padding: 12px; margin: 8px 0; border-radius: 12px; background: rgba(42, 45, 62, 0.5); border: 1px solid rgba(139, 92, 246, 0.1); cursor: pointer;">
-                                <div>
-                                    <div style="font-weight: 600; margin-bottom: 4px;">{display_name} {transcribed_badge}</div>
-                                    <div style="font-size: 11px; color: var(--muted-foreground);">Selecciona en la pestaña "Transcribir"</div>
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div style="font-weight: 600;">{display_name}</div>
+                                    <div style="margin-left: 16px;">{transcribed_badge}</div>
                                 </div>
+                                <div style="font-size: 11px; color: var(--muted-foreground); margin-top: 6px;">Selecciona en la pestaña "Transcribir"</div>
                             </div>
                             ''', unsafe_allow_html=True)
                         
                         with col_edit:
+                            st.write("")  # Espaciado vertical
                             if st.button("✏️", key=f"edit_btn_{recording}", help="Renombrar"):
                                 st.session_state.editing_audio = recording
                                 st.session_state.new_audio_name = format_recording_name(recording).replace(" [Transcrito]", "")
