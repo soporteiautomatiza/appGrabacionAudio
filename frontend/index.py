@@ -458,8 +458,39 @@ st.markdown("")
 # SECCIÓN DE TRANSCRIPCIÓN
 
 if st.session_state.get("chat_enabled", False) and st.session_state.get("contexto"):
+    # Indicador visual del audio activo
+    selected_audio_name = st.session_state.get('selected_audio', 'audio')
+    
+    st.markdown(f'''
+    <div style="
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        padding: 16px 20px;
+        border-radius: 12px;
+        border-left: 4px solid #00d9ff;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 12px rgba(0, 217, 255, 0.2);
+    ">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 24px;">🎙️</span>
+            <div>
+                <div style="font-size: 12px; color: #00d9ff; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;">AUDIO ACTIVO</div>
+                <div style="font-size: 18px; font-weight: 700; color: white; margin-top: 4px;">{selected_audio_name}</div>
+            </div>
+            <div style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
+                <span style="width: 10px; height: 10px; background: #00ff00; border-radius: 50%; animation: pulse 1.5s infinite;"></span>
+                <span style="color: #00ff00; font-weight: 600; font-size: 12px;">EN LÍNEA</span>
+            </div>
+        </div>
+    </div>
+    <style>
+        @keyframes pulse {{
+            0%, 100% {{ opacity: 1; }}
+            50% {{ opacity: 0.5; }}
+        }}
+    </style>
+    ''', unsafe_allow_html=True)
+    
     st.header("Transcripción del Audio")
-    st.caption(f"De: {st.session_state.get('selected_audio', 'audio')}")
     
     # Mostrar transcripción en un contenedor
     with st.container(border=True):
