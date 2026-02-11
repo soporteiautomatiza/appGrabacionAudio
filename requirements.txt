@@ -4,3 +4,4 @@ python-dotenv==1.0.0
 supabase
 postgrest
 psycopg2-binary
+pyperclip==1.8.2

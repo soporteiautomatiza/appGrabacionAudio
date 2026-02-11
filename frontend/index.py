@@ -2,6 +2,7 @@ import streamlit as st
 import sys
 import re
 from pathlib import Path
+import pyperclip
 
 # Agregar carpetas al path para importar módulos
 app_root = Path(__file__).parent.parent
@@ -496,9 +497,12 @@ if st.session_state.get("chat_enabled", False) and st.session_state.get("context
         # Opciones de resumen
         col_copy, col_clear = st.columns([1, 1])
         with col_copy:
-            if st.button("📋 Copiar Resumen", use_container_width=True):
-                st.text_area("Copiar:", st.session_state.summary_text, height=100, disabled=True)
-                show_success_expanded("Resumen listo para copiar")
+            if st.button("📋 Copiar Resumen", use_container_width=True, key="copy_summary"):
+                try:
+                    pyperclip.copy(st.session_state.summary_text)
+                    show_success_expanded("✓ Resumen copiado al portapapeles")
+                except Exception as e:
+                    show_error_expanded(f"Error al copiar: {str(e)}")
         with col_clear:
             if st.button("🗑️ Limpiar Resumen", use_container_width=True):
                 st.session_state.summary_text = None
