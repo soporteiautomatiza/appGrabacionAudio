@@ -45,11 +45,12 @@ class AudioRecorder:
             list: Lista de nombres de archivo desde Supabase o lista vacía si falla
         """
         try:
+            import os
             from supabase import create_client
             
-            # Obtener credenciales desde st.secrets
-            supabase_url = st.secrets.get("SUPABASE_URL")
-            supabase_key = st.secrets.get("SUPABASE_KEY")
+            # Obtener credenciales desde variables de entorno
+            supabase_url = os.getenv("SUPABASE_URL")
+            supabase_key = os.getenv("SUPABASE_KEY")
             
             if not supabase_url or not supabase_key:
                 logger.warning("Credenciales de Supabase no configuradas")

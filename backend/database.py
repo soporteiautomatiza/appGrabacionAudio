@@ -74,8 +74,9 @@ def retry_operation(
 def init_supabase() -> Optional[Client]:
     """Inicializa cliente de Supabase con manejo de errores"""
     try:
-        url = st.secrets.get("SUPABASE_URL", "").strip()
-        key = st.secrets.get("SUPABASE_KEY", "").strip()
+        import os
+        url = os.getenv("SUPABASE_URL", "").strip()
+        key = os.getenv("SUPABASE_KEY", "").strip()
         if not url or not key:
             logger.error("❌ Credentials no configuradas")
             return None

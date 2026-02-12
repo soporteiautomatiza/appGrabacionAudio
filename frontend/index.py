@@ -88,9 +88,10 @@ def add_debug_event(message: str, event_type: str = "info") -> None:
 def update_recordings_map() -> None:
     """Actualiza el mapeo de filename → recording_id desde Supabase"""
     try:
+        import os
         from supabase import create_client
-        supabase_url = st.secrets.get("SUPABASE_URL")
-        supabase_key = st.secrets.get("SUPABASE_KEY")
+        supabase_url = os.getenv("SUPABASE_URL")
+        supabase_key = os.getenv("SUPABASE_KEY")
         
         if not supabase_url or not supabase_key:
             logger.warning("⚠️  Supabase credentials no configuradas")
