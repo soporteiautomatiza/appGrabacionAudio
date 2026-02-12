@@ -56,13 +56,19 @@ def get_opportunities_manager():
     """Carga el manager de oportunidades UNA SOLA VEZ"""
     return OpportunitiesManager()
 
+@st.cache_resource
+def get_recorder():
+    """Carga el recorder UNA SOLA VEZ"""
+    return AudioRecorder()
+
 @st.cache_data(ttl=300)  # Cachea por 5 minutos
-def get_recordings_cached(recorder_obj: AudioRecorder):
+def get_recordings_cached():
     """Cachea la lista de grabaciones de Supabase"""
+    recorder_obj = get_recorder()
     return recorder_obj.get_recordings_from_supabase()
 
 @st.cache_data(ttl=300)  # Cachea por 5 minutos
-def get_recordings_map_cached(recordings: list):
+def get_recordings_map_cached():
     """Cachea el mapeo de filename → recording_id"""
     try:
         from supabase import create_client
@@ -147,7 +153,7 @@ st.markdown(styles.get_styles(), unsafe_allow_html=True)
 components.render_background_effects()
 
 # Inicializar objetos - AHORA USANDO CACHÉ (no se reinicializan en cada re-run)
-recorder = AudioRecorder()
+recorder = get_recorder()  # @st.cache_resource
 transcriber_model = get_transcriber_model()  # @st.cache_resource
 chat_model = get_chat_model()  # @st.cache_resource
 opp_manager = get_opportunities_manager()  # @st.cache_resource
@@ -156,11 +162,11 @@ opp_manager = get_opportunities_manager()  # @st.cache_resource
 initialize_session_state(recorder)
 
 # Obtener grabaciones CACHEADAS (no se refrescan en cada re-run sin razón)
-recordings = get_recordings_cached(recorder)
+recordings = get_recordings_cached()
 st.session_state.recordings = recordings
 
 # Obtener mapeo CACHEADO
-recordings_map = get_recordings_map_cached(tuple(recordings))  # Convertir a tuple para hashear
+recordings_map = get_recordings_map_cached()
 st.session_state.recordings_map = recordings_map
 
 # Crear dos columnas principales (4/8 split como en el diseño)
