@@ -1,15 +1,45 @@
 """
-Performance Optimization Module
-================================
-Funciones para caché, actualización local sin rerun, y lazy loading
+Performance Optimization Module - VERSIÓN MEJORADA 2.0
+======================================================
+Funciones para caché, actualización local sin rerun, lazy loading y monitoreo
 """
 
 import streamlit as st
+import logging
 from functools import lru_cache
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
+from datetime import datetime
+import sys
+
+logger = logging.getLogger(__name__)
 
 # ============================================================================
-# CAÓHE INTELIGENTE PARA TRANSCRIPCIONES
+# 🚀 CACHÉ DE RECURSOS - Modelos cargados UNA SOLA VEZ
+# ============================================================================
+
+@st.cache_resource
+def get_transcriber_cached():
+    """Instancia transcriber UNA SOLA VEZ en la sesión"""
+    logger.info("✅ Transcriber inicializado (cacheado)")
+    from backend.Transcriber import Transcriber
+    return Transcriber()
+
+@st.cache_resource
+def get_chat_model_cached():
+    """Instancia modelo chat UNA SOLA VEZ"""
+    logger.info("✅ Chat Model inicializado (cacheado)")
+    from backend.Model import Model
+    return Model()
+
+@st.cache_resource
+def get_opp_manager_cached():
+    """Instancia manager de oportunidades UNA SOLA VEZ"""
+    logger.info("✅ Opportunities Manager inicializado (cacheado)")
+    from backend.OpportunitiesManager import OpportunitiesManager
+    return OpportunitiesManager()
+
+# ============================================================================
+# 🚀 CACHÉ DE DATOS - Queries Supabase cada 60 segundos
 # ============================================================================
 
 @st.cache_data(ttl=300, show_spinner=False)  # Reducir TTL a 5 minutos para audios nuevos
@@ -359,3 +389,127 @@ def delete_audio(filename: str, db_utils) -> bool:
         return db_utils.delete_recording_from_db(db_utils.db, filename)
     except Exception:
         return False
+
+
+# ============================================================================
+# 📊 ESTADÍSTICAS Y MONITOREO
+# ============================================================================
+
+def get_cache_stats() -> Dict[str, Any]:
+    """Obtiene estadísticas de caché de la sesión"""
+    if "cache_hits" not in st.session_state:
+        st.session_state.cache_hits = 0
+    if "cache_misses" not in st.session_state:
+        st.session_state.cache_misses = 0
+    
+    hits = st.session_state.cache_hits
+    misses = st.session_state.cache_misses
+    total = hits + misses
+    hit_rate = hits / total if total > 0 else 0
+    
+    return {
+        "hits": hits,
+        "misses": misses,
+        "total": total,
+        "hit_rate": hit_rate,
+    }
+
+
+def get_memory_usage() -> Dict[str, Any]:
+    """Obtiene uso de memoria de session state"""
+    total_size = 0
+    item_count = 0
+    
+    for key, value in st.session_state.items():
+        try:
+            total_size += sys.getsizeof(value)
+            item_count += 1
+        except Exception:
+            pass
+    
+    total_kb = total_size / 1024
+    
+    return {
+        "total_bytes": total_size,
+        "total_kb": total_kb,
+        "total_mb": total_kb / 1024,
+        "item_count": item_count,
+        "debug_log_size": len(st.session_state.get("debug_log", [])),
+    }
+
+
+def render_optimization_debug_panel() -> None:
+    """Renderiza panel de debug con métricas de optimización"""
+    st.markdown("### 📊 Optimización y Performance")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    # Cache stats
+    cache_stats = get_cache_stats()
+    with col1:
+        st.metric(
+            "Cache Hit Rate",
+            f"{cache_stats['hit_rate']:.1%}",
+            f"{cache_stats['hits']} hits / {cache_stats['total']}"
+        )
+    
+    # Memory usage
+    memory = get_memory_usage()
+    with col2:
+        st.metric(
+            "Sesión Memory",
+            f"{memory['total_mb']:.2f} MB",
+            f"{memory['item_count']} items"
+        )
+    
+    # Debug log
+    with col3:
+        debug_size = memory['debug_log_size']
+        status = "✅" if debug_size < 150 else "⚠️" if debug_size < 200 else "❌"
+        st.metric(
+            "Debug Log",
+            f"{debug_size} eventos",
+            f"{status} (límite: 200)"
+        )
+    
+    # Debug log details
+    st.markdown("#### Recent Events")
+    debug_log = st.session_state.get("debug_log", [])
+    
+    if debug_log:
+        for event in debug_log[-15:]:
+            icon = "ℹ️" if event["type"] == "info" else "✅" if event["type"] == "success" else "❌"
+            st.caption(f"{icon} {event['time']} - {event['message']}")
+    else:
+        st.info("No hay eventos de debug registrados")
+
+
+def increment_cache_hit() -> None:
+    """Incrementa contador de cache hits"""
+    if "cache_hits" not in st.session_state:
+        st.session_state.cache_hits = 0
+    st.session_state.cache_hits += 1
+
+
+def increment_cache_miss() -> None:
+    """Incrementa contador de cache misses"""
+    if "cache_misses" not in st.session_state:
+        st.session_state.cache_misses = 0
+    st.session_state.cache_misses += 1
+
+
+def log_performance_metric(metric_name: str, value: float, unit: str = "ms") -> None:
+    """Registra métrica de performance en debug log"""
+    timestamp = datetime.now().strftime("%H:%M:%S")
+    message = f"📊 {metric_name}: {value:.2f} {unit}"
+    
+    if "debug_log" not in st.session_state:
+        st.session_state.debug_log = []
+    
+    st.session_state.debug_log.append({
+        "time": timestamp,
+        "type": "metric",
+        "message": message
+    })
+    
+    logger.info(message)

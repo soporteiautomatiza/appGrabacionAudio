@@ -38,6 +38,51 @@ from datetime import datetime
 from config import CHAT_HISTORY_LIMIT
 
 # ============================================================================
+# FUNCIONES CON CACHÉ PARA OPTIMIZAR RENDIMIENTO
+# ============================================================================
+
+@st.cache_resource
+def get_transcriber_model():
+    """Carga el modelo de transcripción UNA SOLA VEZ"""
+    return Transcriber()
+
+@st.cache_resource
+def get_chat_model():
+    """Carga el modelo de chat UNA SOLA VEZ"""
+    return Model()
+
+@st.cache_resource
+def get_opportunities_manager():
+    """Carga el manager de oportunidades UNA SOLA VEZ"""
+    return OpportunitiesManager()
+
+@st.cache_data(ttl=300)  # Cachea por 5 minutos
+def get_recordings_cached(recorder_obj: AudioRecorder):
+    """Cachea la lista de grabaciones de Supabase"""
+    return recorder_obj.get_recordings_from_supabase()
+
+@st.cache_data(ttl=300)  # Cachea por 5 minutos
+def get_recordings_map_cached(recordings: list):
+    """Cachea el mapeo de filename → recording_id"""
+    try:
+        from supabase import create_client
+        supabase_url = st.secrets.get("SUPABASE_URL")
+        supabase_key = st.secrets.get("SUPABASE_KEY")
+        
+        if not supabase_url or not supabase_key:
+            return {}
+        
+        client = create_client(supabase_url.strip(), supabase_key.strip())
+        response = client.table("recordings").select("id, filename").order("created_at", desc=True).limit(50).execute()
+        
+        if response and response.data:
+            return {rec["filename"]: rec["id"] for rec in response.data}
+        return {}
+    except Exception as e:
+        logger.error(f"Error getting recordings map: {str(e)[:100]}")
+        return {}
+
+# ============================================================================
 # FUNCIONES DE INICIALIZACIÓN
 # ============================================================================
 
@@ -73,8 +118,8 @@ def initialize_session_state(recorder_obj: AudioRecorder) -> None:
             st.session_state[key] = value
 
 # Función auxiliar para agregar eventos al debug log
-def add_debug_event(message: str, event_type: str = "info") -> None:
-    """Agrega un evento al registro de debug"""
+def add_debug_event(message: str, event_type: str = "info", max_events: int = 50) -> None:
+    """Agrega un evento al registro de debug CON LÍMITE de eventos"""
     if "debug_log" not in st.session_state:
         st.session_state.debug_log = []
     
@@ -84,31 +129,10 @@ def add_debug_event(message: str, event_type: str = "info") -> None:
         "type": event_type,
         "message": message
     })
-
-def update_recordings_map() -> None:
-    """Actualiza el mapeo de filename → recording_id desde Supabase"""
-    try:
-        from supabase import create_client
-        supabase_url = st.secrets.get("SUPABASE_URL")
-        supabase_key = st.secrets.get("SUPABASE_KEY")
-        
-        if not supabase_url or not supabase_key:
-            logger.warning("⚠️  Supabase credentials no configuradas")
-            return
-        
-        client = create_client(supabase_url.strip(), supabase_key.strip())
-        response = client.table("recordings").select("id, filename").order("created_at", desc=True).limit(50).execute()
-        
-        if response and response.data:
-            recordings_map = {rec["filename"]: rec["id"] for rec in response.data}
-            st.session_state.recordings_map = recordings_map
-            logger.info(f"✅ Recordings map actualizado: {len(recordings_map)} registros")
-            logger.debug(f"   Ejemplos: {list(recordings_map.keys())[:3]}")
-        else:
-            logger.warning("⚠️  No se obtuvieron recordings de Supabase")
-            st.session_state.recordings_map = {}
-    except Exception as e:
-        logger.error(f"❌ Error actualizando recordings_map: {type(e).__name__} - {str(e)[:100]}")
+    
+    # OPTIMIZACIÓN: Mantener solo los últimos N eventos para no llenar RAM
+    if len(st.session_state.debug_log) > max_events:
+        st.session_state.debug_log = st.session_state.debug_log[-max_events:]
 
 # ============================================================================
 # CONFIGURACIÓN INICIAL DE LA INTERFAZ DE USUARIO
@@ -122,17 +146,22 @@ st.markdown(styles.get_styles(), unsafe_allow_html=True)
 # Renderizar efectos de fondo animados
 components.render_background_effects()
 
-# Inicializar objetos
+# Inicializar objetos - AHORA USANDO CACHÉ (no se reinicializan en cada re-run)
 recorder = AudioRecorder()
-transcriber_model = Transcriber()
-chat_model = Model()
-opp_manager = OpportunitiesManager()
+transcriber_model = get_transcriber_model()  # @st.cache_resource
+chat_model = get_chat_model()  # @st.cache_resource
+opp_manager = get_opportunities_manager()  # @st.cache_resource
 
 # Inicializar estado de sesión de forma centralizada
 initialize_session_state(recorder)
 
-# Inicializar optimizaciones de performance
-init_optimization_state()
+# Obtener grabaciones CACHEADAS (no se refrescan en cada re-run sin razón)
+recordings = get_recordings_cached(recorder)
+st.session_state.recordings = recordings
+
+# Obtener mapeo CACHEADO
+recordings_map = get_recordings_map_cached(tuple(recordings))  # Convertir a tuple para hashear
+st.session_state.recordings_map = recordings_map
 
 # Crear dos columnas principales (4/8 split como en el diseño)
 col_left, col_right = st.columns([4, 8])
@@ -185,12 +214,7 @@ with col_left:
 # PANEL DERECHO - Audios Guardados y Transcripción
 # ============================================================================
 with col_right:
-    # Refresh de la lista de audios
-    recordings = recorder.get_recordings_from_supabase()
-    st.session_state.recordings = recordings
-    
-    # Actualizar mapeo de IDs para análisis de oportunidades
-    update_recordings_map()
+    # Las grabaciones YA están cacheadas desde arriba (no re-fetch innecesarias)
     
     if recordings:
         # Tabs para diferentes secciones
@@ -437,12 +461,21 @@ with col_right:
         with tab2:
             st.caption(f"Total: {len(recordings)} grabaciones")
             
-            # Búsqueda
-            search_query = st.text_input(
-                "Buscar grabaciones",
-                placeholder="Escribe el nombre del archivo...",
-                key="audio_search"
-            )
+            # OPTIMIZACIÓN: Envolver búsqueda en st.form para evitar re-runs con cada keystroke
+            with st.form(key="search_form", clear_on_submit=False):
+                search_query = st.text_input(
+                    "Buscar grabaciones",
+                    placeholder="Escribe el nombre del archivo...",
+                    value=st.session_state.get("audio_search_value", "")
+                )
+                search_submitted = st.form_submit_button("🔍 Buscar")
+            
+            # Actualizar búsqueda solo cuando se presiona el botón
+            if search_submitted:
+                st.session_state.audio_search_value = search_query
+                st.session_state.audio_page = 0
+            
+            search_query = st.session_state.get("audio_search_value", "")
             
             # Filtrar audios
             if search_query.strip():
@@ -451,8 +484,6 @@ with col_right:
                     r for r in recordings 
                     if search_safe.lower() in r.lower()
                 ]
-                # Reset página al buscar
-                st.session_state.audio_page = 0
             else:
                 filtered_recordings = recordings
             
@@ -482,9 +513,6 @@ with col_right:
                     display_name = format_recording_name(recording)
                     is_transcribed = is_audio_transcribed(recording, db_utils)
                     transcribed_badge = components.render_badge("Transcrito", "transcribed") if is_transcribed else ""
-                    
-                    # Verificar si este audio está siendo editado
-                    if st.session_state.editing_audio == recording:
                         # Modo edición: input + botones confirmación
                         col_input, col_confirm, col_cancel = st.columns([0.75, 0.125, 0.125])
                         
