@@ -666,26 +666,35 @@ if st.session_state.get("chat_enabled", False) and st.session_state.get("context
             st.session_state.generating_summary = True
             st.rerun()
     
-    # CSS personalizado para los botones
+    # CSS simple para colorear los botones
     st.markdown(
         """
         <style>
         /* Email button - Red Gmail */
-        button[data-testid="baseButton-0"] {
-            background: linear-gradient(135deg, #EA4335, #d33425) !important;
+        [key="email_transcript_btn"] {
+            background-color: #EA4335 !important;
             color: white !important;
+        }
+        [key="email_transcript_btn"]:hover {
+            background-color: #d33425 !important;
         }
         
         /* WhatsApp button - Green */
-        button[data-testid="baseButton-1"] {
-            background: linear-gradient(135deg, #25D366, #20ba5a) !important;
+        [key="whatsapp_transcript_btn"] {
+            background-color: #25D366 !important;
             color: white !important;
+        }
+        [key="whatsapp_transcript_btn"]:hover {
+            background-color: #20ba5a !important;
         }
         
         /* Generar Resumen button - Blue gradient */
-        button[data-testid="baseButton-2"] {
+        [key="generar_resumen_btn"] {
             background: linear-gradient(135deg, #0066FF, #00AAFF) !important;
             color: white !important;
+        }
+        [key="generar_resumen_btn"]:hover {
+            background: linear-gradient(135deg, #0052CC, #0099FF) !important;
         }
         </style>
         """,
