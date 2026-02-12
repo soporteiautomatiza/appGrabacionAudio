@@ -294,6 +294,7 @@ def render_empty_state(icon: str, message: str) -> None:
 def render_colorful_transcription(transcription: str) -> None:
     """
     Renderiza la transcripción con colores diferentes para cada persona.
+    Con expansión/colapso: muestra primeras 5 líneas por defecto.
     
     Formato esperado:
     Nombre: "texto..."
@@ -358,10 +359,36 @@ def render_colorful_transcription(transcription: str) -> None:
                 line_safe = line.replace('<', '&lt;').replace('>', '&gt;')
                 html_parts.append(f'<div style="color:rgba(255,255,255,0.7);margin-bottom:8px;">{line_safe}</div>')
     
-    # Combinar todo el HTML
-    html_content = '<div style="font-family:\'Segoe UI\',Tahoma,Geneva,Verdana,sans-serif;line-height:1.8;padding:20px;background:rgba(20,30,50,0.5);border-radius:12px;border:1px solid rgba(255,255,255,0.1);">'
-    html_content += ''.join(html_parts)
-    html_content += '</div>'
+    # Determinar si hay que mostrar expansión
+    total_lines = len(html_parts)
+    max_initial_lines = 5
+    needs_expansion = total_lines > max_initial_lines
     
-    # Mostrar con Streamlit
-    st.markdown(html_content, unsafe_allow_html=True)
+    # Inicializar estado de expansión en session_state
+    if 'transcript_expanded' not in st.session_state:
+        st.session_state.transcript_expanded = False
+    
+    # Mostrar primeras líneas siempre
+    html_content = '<div style="font-family:\'Segoe UI\',Tahoma,Geneva,Verdana,sans-serif;line-height:1.8;padding:20px;background:rgba(20,30,50,0.5);border-radius:12px;border:1px solid rgba(255,255,255,0.1);">'
+    
+    if needs_expansion and not st.session_state.transcript_expanded:
+        # Mostrar solo primeras 5 líneas
+        html_content += ''.join(html_parts[:max_initial_lines])
+        html_content += '</div>'
+        st.markdown(html_content, unsafe_allow_html=True)
+        
+        # Botón para expandir
+        if st.button(f"📖 Mostrar más ({total_lines - max_initial_lines} líneas restantes)", use_container_width=True):
+            st.session_state.transcript_expanded = True
+            st.rerun()
+    else:
+        # Mostrar todo
+        html_content += ''.join(html_parts)
+        html_content += '</div>'
+        st.markdown(html_content, unsafe_allow_html=True)
+        
+        # Botón para colapsar si está expandido
+        if needs_expansion:
+            if st.button("📖 Mostrar menos", use_container_width=True):
+                st.session_state.transcript_expanded = False
+                st.rerun()
