@@ -324,7 +324,7 @@ def render_colorful_transcription(transcription: str) -> None:
     
     # Parsear líneas y extraer nombres de personas
     lines = transcription.split('\n')
-    html_content = '<div style="font-family: \'Segoe UI\', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.8; padding: 20px; background: rgba(20, 30, 50, 0.5); border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1);">'
+    html_parts = []
     
     for line in lines:
         if ':' in line:
@@ -341,22 +341,26 @@ def render_colorful_transcription(transcription: str) -> None:
                 
                 color = speaker_colors[speaker]
                 
-                # Crear línea con nombre en color y texto normal
-                html_content += f'''
-                <div style="margin-bottom: 12px; padding: 12px; background: rgba(255, 255, 255, 0.05); border-left: 4px solid {color}; border-radius: 4px;">
-                    <span style="color: {color}; font-weight: 700; font-size: 14px;">{speaker}:</span>
-                    <span style="color: rgba(255, 255, 255, 0.9); margin-left: 8px;">{text}</span>
-                </div>
-                '''
+                # Escapar caracteres especiales en el texto
+                text_safe = text.replace('<', '&lt;').replace('>', '&gt;')
+                
+                # Crear línea HTML sin saltos de línea
+                html_line = f'<div style="margin-bottom:12px;padding:12px;background:rgba(255,255,255,0.05);border-left:4px solid {color};border-radius:4px;"><span style="color:{color};font-weight:700;font-size:14px;">{speaker}:</span><span style="color:rgba(255,255,255,0.9);margin-left:8px;">{text_safe}</span></div>'
+                html_parts.append(html_line)
             else:
                 # Si no hay ":", simplemente mostrar la línea
                 if line.strip():
-                    html_content += f'<div style="color: rgba(255, 255, 255, 0.7); margin-bottom: 8px;">{line}</div>'
+                    line_safe = line.replace('<', '&lt;').replace('>', '&gt;')
+                    html_parts.append(f'<div style="color:rgba(255,255,255,0.7);margin-bottom:8px;">{line_safe}</div>')
         else:
             # Líneas sin ":" (líneas en blanco o texto sin speaker)
             if line.strip():
-                html_content += f'<div style="color: rgba(255, 255, 255, 0.7); margin-bottom: 8px;">{line}</div>'
+                line_safe = line.replace('<', '&lt;').replace('>', '&gt;')
+                html_parts.append(f'<div style="color:rgba(255,255,255,0.7);margin-bottom:8px;">{line_safe}</div>')
     
+    # Combinar todo el HTML
+    html_content = '<div style="font-family:\'Segoe UI\',Tahoma,Geneva,Verdana,sans-serif;line-height:1.8;padding:20px;background:rgba(20,30,50,0.5);border-radius:12px;border:1px solid rgba(255,255,255,0.1);">'
+    html_content += ''.join(html_parts)
     html_content += '</div>'
     
     # Mostrar con Streamlit
