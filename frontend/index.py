@@ -648,92 +648,49 @@ if st.session_state.get("chat_enabled", False) and st.session_state.get("context
     with st.container(border=True):
         render_colorful_transcription(st.session_state.contexto)
     
-    # Botones de acción para transcripción con HTML personalizado
+    # Botones de acción para transcripción con colores personalizados
     col_trans1, col_trans2, col_trans3 = st.columns(3)
     
     with col_trans1:
-        st.markdown(
-            """
-            <button onclick="document.getElementById('email_transcript_btn').click()" 
-                    style="
-                    background-color: #EA4335;
-                    color: white;
-                    padding: 12px 24px;
-                    border: none;
-                    border-radius: 8px;
-                    font-weight: 600;
-                    font-size: 16px;
-                    cursor: pointer;
-                    width: 100%;
-                    transition: all 0.3s ease;
-                    box-shadow: 0 4px 12px rgba(234, 67, 53, 0.3);
-                    "
-                    onmouseover="this.style.backgroundColor='#d33425'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 16px rgba(234, 67, 53, 0.4)'"
-                    onmouseout="this.style.backgroundColor='#EA4335'; this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(234, 67, 53, 0.3)'">
-                Email
-            </button>
-            """,
-            unsafe_allow_html=True
-        )
-        if st.button("", key="email_transcript_btn", label_visibility="collapsed"):
+        if st.button("Email", use_container_width=True, key="email_transcript_btn"):
             st.session_state.show_email_transcript = True
             st.rerun()
     
     with col_trans2:
-        st.markdown(
-            """
-            <button onclick="document.getElementById('whatsapp_transcript_btn').click()" 
-                    style="
-                    background-color: #25D366;
-                    color: white;
-                    padding: 12px 24px;
-                    border: none;
-                    border-radius: 8px;
-                    font-weight: 600;
-                    font-size: 16px;
-                    cursor: pointer;
-                    width: 100%;
-                    transition: all 0.3s ease;
-                    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
-                    "
-                    onmouseover="this.style.backgroundColor='#20ba5a'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 16px rgba(37, 211, 102, 0.4)'"
-                    onmouseout="this.style.backgroundColor='#25D366'; this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(37, 211, 102, 0.3)'">
-                WhatsApp
-            </button>
-            """,
-            unsafe_allow_html=True
-        )
-        if st.button("", key="whatsapp_transcript_btn", label_visibility="collapsed"):
+        if st.button("WhatsApp", use_container_width=True, key="whatsapp_transcript_btn"):
             st.session_state.show_whatsapp_transcript = True
             st.rerun()
     
     with col_trans3:
-        st.markdown(
-            """
-            <button onclick="document.getElementById('generar_resumen_btn').click()" 
-                    style="
-                    background: linear-gradient(135deg, #0066FF, #00AAFF);
-                    color: white;
-                    padding: 12px 24px;
-                    border: none;
-                    border-radius: 8px;
-                    font-weight: 600;
-                    font-size: 16px;
-                    cursor: pointer;
-                    width: 100%;
-                    transition: all 0.3s ease;
-                    box-shadow: 0 4px 12px rgba(0, 102, 255, 0.3);
-                    "
-                    onmouseover="this.style.background='linear-gradient(135deg, #0052CC, #0099FF)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 16px rgba(0, 102, 255, 0.4)'"
-                    onmouseout="this.style.background='linear-gradient(135deg, #0066FF, #00AAFF)'; this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(0, 102, 255, 0.3)'">
-                Generar Resumen
-            </button>
-            """,
-            unsafe_allow_html=True
-        )
-        if st.button("", key="generar_resumen_btn", label_visibility="collapsed"):
+        if st.button("Generar Resumen", use_container_width=True, key="generar_resumen_btn"):
             st.session_state.generating_summary = True
             st.rerun()
+    
+    # CSS personalizado para los botones
+    st.markdown(
+        """
+        <style>
+        /* Email button - Red Gmail */
+        button[data-testid="baseButton-0"] {
+            background: linear-gradient(135deg, #EA4335, #d33425) !important;
+            color: white !important;
+        }
+        
+        /* WhatsApp button - Green */
+        button[data-testid="baseButton-1"] {
+            background: linear-gradient(135deg, #25D366, #20ba5a) !important;
+            color: white !important;
+        }
+        
+        /* Generar Resumen button - Blue gradient */
+        button[data-testid="baseButton-2"] {
+            background: linear-gradient(135deg, #0066FF, #00AAFF) !important;
+            color: white !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
     
     # Modal para transcripción por email
     if st.session_state.get("show_email_transcript"):
