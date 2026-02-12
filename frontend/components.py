@@ -368,138 +368,130 @@ def render_colorful_transcription(transcription: str) -> None:
     if 'transcript_expanded' not in st.session_state:
         st.session_state.transcript_expanded = False
     
-    # Mostrar primeras líneas siempre
-    html_content = '<div style="font-family:\'Segoe UI\',Tahoma,Geneva,Verdana,sans-serif;line-height:1.8;padding:20px;background:rgba(20,30,50,0.5);border-radius:12px;border:1px solid rgba(255,255,255,0.1);">'
+    # CSS para animaciones y botones
+    css_styles = '''
+    <style>
+        @keyframes slideDown {
+            from { transform: translateY(-5px); opacity: 0.8; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(5px); opacity: 0.8; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .expand-btn {
+            display: block;
+            width: 100%;
+            padding: 14px 20px;
+            margin-top: 16px;
+            background: linear-gradient(135deg, #45B7D1 0%, #2E8B9E 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: slideDown 0.5s ease-out;
+            box-shadow: 0 4px 15px rgba(69, 183, 209, 0.3);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .expand-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(69, 183, 209, 0.4);
+            background: linear-gradient(135deg, #5ECDE8 0%, #3FA5B8 100%);
+        }
+        .expand-btn:active {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(69, 183, 209, 0.3);
+        }
+        .expand-arrow {
+            display: inline-block;
+            margin-left: 10px;
+            transition: transform 0.3s ease;
+            font-size: 18px;
+        }
+        .expand-btn:hover .expand-arrow {
+            transform: translateY(3px);
+        }
+        .line-counter {
+            display: inline-block;
+            margin-left: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 13px;
+            opacity: 0.9;
+        }
+        .collapse-btn {
+            display: block;
+            width: 100%;
+            padding: 14px 20px;
+            margin-top: 16px;
+            background: linear-gradient(135deg, #BB8FCE 0%, #9B6BA8 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: slideUp 0.5s ease-out;
+            box-shadow: 0 4px 15px rgba(187, 143, 206, 0.3);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .collapse-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(187, 143, 206, 0.4);
+            background: linear-gradient(135deg, #D4A5E0 0%, #B084C4 100%);
+        }
+        .collapse-btn:active {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(187, 143, 206, 0.3);
+        }
+        .collapse-arrow {
+            display: inline-block;
+            margin-left: 10px;
+            transition: transform 0.3s ease;
+            font-size: 18px;
+        }
+        .collapse-btn:hover .collapse-arrow {
+            transform: translateY(-3px);
+        }
+    </style>
+    '''
     
     if needs_expansion and not st.session_state.transcript_expanded:
         # Mostrar solo primeras 5 líneas
+        html_content = '<div style="font-family:\'Segoe UI\',Tahoma,Geneva,Verdana,sans-serif;line-height:1.8;padding:20px;background:rgba(20,30,50,0.5);border-radius:12px;border:1px solid rgba(255,255,255,0.1);">'
         html_content += ''.join(html_parts[:max_initial_lines])
         html_content += '</div>'
         st.markdown(html_content, unsafe_allow_html=True)
         
-        # Botón expandir con estilo profesional y animado
+        # Botón expandir
         remaining = total_lines - max_initial_lines
-        button_html = f'''
-        <style>
-            @keyframes slideDown {{
-                from {{ transform: translateY(-5px); opacity: 0.8; }}
-                to {{ transform: translateY(0); opacity: 1; }}
-            }}
-            @keyframes pulse {{
-                0%, 100% {{ box-shadow: 0 0 0 0 rgba(69, 183, 209, 0.7); }}
-                50% {{ box-shadow: 0 0 0 10px rgba(69, 183, 209, 0); }}
-            }}
-            .expand-btn {{
-                display: block;
-                width: 100%;
-                padding: 14px 20px;
-                margin-top: 16px;
-                background: linear-gradient(135deg, #45B7D1 0%, #2E8B9E 100%);
-                color: white;
-                border: none;
-                border-radius: 8px;
-                font-size: 15px;
-                font-weight: 600;
-                cursor: pointer;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                animation: slideDown 0.5s ease-out;
-                box-shadow: 0 4px 15px rgba(69, 183, 209, 0.3);
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            }}
-            .expand-btn:hover {{
-                transform: translateY(-3px);
-                box-shadow: 0 8px 25px rgba(69, 183, 209, 0.4);
-                background: linear-gradient(135deg, #5ECDE8 0%, #3FA5B8 100%);
-            }}
-            .expand-btn:active {{
-                transform: translateY(-1px);
-                box-shadow: 0 4px 12px rgba(69, 183, 209, 0.3);
-            }}
-            .expand-arrow {{
-                display: inline-block;
-                margin-left: 10px;
-                transition: transform 0.3s ease;
-                font-size: 18px;
-            }}
-            .expand-btn:hover .expand-arrow {{
-                transform: translateY(3px);
-            }}
-            .line-counter {{
-                display: inline-block;
-                margin-left: 8px;
-                background: rgba(255, 255, 255, 0.2);
-                padding: 2px 8px;
-                border-radius: 4px;
-                font-size: 13px;
-                opacity: 0.9;
-            }}
-        </style>
-        <button class="expand-btn" onclick="window.parent.document.querySelector('[data-testid=stStopButton]')?.click(); location.reload();">
-            📖 Ver Transcripción Completa <span class="expand-arrow">↓</span>
-            <span class="line-counter">{remaining} líneas más</span>
-        </button>
-        '''
-        st.markdown(button_html, unsafe_allow_html=True)
+        st.markdown(css_styles, unsafe_allow_html=True)
         
-        if st.button("Expandir", key="expand_btn_hidden", label_visibility="collapsed"):
-            st.session_state.transcript_expanded = True
-            st.rerun()
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            if st.button(f"📖 Ver Transcripción Completa", use_container_width=True, key="expand_transcript"):
+                st.session_state.transcript_expanded = True
+                st.rerun()
+        
+        # Info de líneas restantes
+        st.caption(f"📄 {remaining} líneas más disponibles")
     else:
         # Mostrar todo
+        html_content = '<div style="font-family:\'Segoe UI\',Tahoma,Geneva,Verdana,sans-serif;line-height:1.8;padding:20px;background:rgba(20,30,50,0.5);border-radius:12px;border:1px solid rgba(255,255,255,0.1);">'
         html_content += ''.join(html_parts)
         html_content += '</div>'
         st.markdown(html_content, unsafe_allow_html=True)
         
-        # Botón colapsar con estilo profesional y animado
+        # Botón colapsar si está expandido
         if needs_expansion:
-            button_html = '''
-            <style>
-                @keyframes slideUp {{
-                    from {{ transform: translateY(5px); opacity: 0.8; }}
-                    to {{ transform: translateY(0); opacity: 1; }}
-                }}
-                .collapse-btn {{
-                    display: block;
-                    width: 100%;
-                    padding: 14px 20px;
-                    margin-top: 16px;
-                    background: linear-gradient(135deg, #BB8FCE 0%, #9B6BA8 100%);
-                    color: white;
-                    border: none;
-                    border-radius: 8px;
-                    font-size: 15px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                    animation: slideUp 0.5s ease-out;
-                    box-shadow: 0 4px 15px rgba(187, 143, 206, 0.3);
-                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                }}
-                .collapse-btn:hover {{
-                    transform: translateY(-3px);
-                    box-shadow: 0 8px 25px rgba(187, 143, 206, 0.4);
-                    background: linear-gradient(135deg, #D4A5E0 0%, #B084C4 100%);
-                }}
-                .collapse-btn:active {{
-                    transform: translateY(-1px);
-                    box-shadow: 0 4px 12px rgba(187, 143, 206, 0.3);
-                }}
-                .collapse-arrow {{
-                    display: inline-block;
-                    margin-left: 10px;
-                    transition: transform 0.3s ease;
-                    font-size: 18px;
-                }}
-                .collapse-btn:hover .collapse-arrow {{
-                    transform: translateY(-3px);
-                }}
-            </style>
-            <button class="collapse-btn" onclick="location.reload();">
-                📖 Ver Solo Resumen <span class="collapse-arrow">↑</span>
-            </button>
-            '''
-            st.markdown(button_html, unsafe_allow_html=True)
-            
-            if st.button("Colapsar", key="collapse_btn_hidden", label_visibility="collapsed"):
-                st.session_state.transcript_expanded = False
-                st.rerun()
+            st.markdown(css_styles, unsafe_allow_html=True)
+            col1, col2, col3 = st.columns([1, 2, 1])
+            with col2:
+                if st.button(f"📖 Ver Solo Resumen", use_container_width=True, key="collapse_transcript"):
+                    st.session_state.transcript_expanded = False
+                    st.rerun()
