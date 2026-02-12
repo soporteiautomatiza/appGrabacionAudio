@@ -279,14 +279,37 @@ with col_right:
                                     ''', unsafe_allow_html=True)
                                 
                                 opportunities_manager = OpportunitiesManager()
-                                num_opportunities, detected_opps = opportunities_manager.analyze_opportunities_with_ai(
-                                    transcription=transcription.text,
-                                    audio_filename=selected_audio
-                                )
+                                
+                                logger.info(f"[STREAMLIT] Llamando analyze_opportunities_with_ai")
+                                logger.info(f"[STREAMLIT] transcription.text: {str(transcription.text)[:100]}...")
+                                logger.info(f"[STREAMLIT] audio_filename: {selected_audio}")
+                                
+                                try:
+                                    num_opportunities, detected_opps = opportunities_manager.analyze_opportunities_with_ai(
+                                        transcription=transcription.text,
+                                        audio_filename=selected_audio
+                                    )
+                                    logger.info(f"[STREAMLIT] Resultado: {num_opportunities} detectadas, {len(detected_opps) if detected_opps else 0} guardadas")
+                                except Exception as analysis_error:
+                                    logger.error(f"[STREAMLIT] ERROR en analyze_opportunities_with_ai: {type(analysis_error).__name__} - {str(analysis_error)}")
+                                    num_opportunities = 0
+                                    detected_opps = []
+                                
+                                logger.info(f"[STREAMLIT] num_opportunities={num_opportunities}, detected_opps={detected_opps}")
                                 
                                 # Actualizar el indicador con los resultados
                                 with analysis_placeholder.container():
                                     if num_opportunities > 0:
+                                        # Determinar si se guardaron o solo se detectaron
+                                        if detected_opps:
+                                            tickets_status = f"Se han creado {len(detected_opps)} ticket(s) automáticamente"
+                                            subtitle = "Los tickets están disponibles en la sección de 'Oportunidades'"
+                                            icon = "✅"
+                                        else:
+                                            tickets_status = f"Se detectaron {num_opportunities} oportunidad(es)"
+                                            subtitle = "Oportunidades identificadas por IA (pendiente almacenamiento)"
+                                            icon = "🔍"
+                                        
                                         st.markdown(f'''
                                         <div style="
                                             background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%);
@@ -297,21 +320,23 @@ with col_right:
                                             text-align: center;
                                         ">
                                             <div style="font-size: 14px; font-weight: 600; color: #22c55e; margin-bottom: 8px;">
-                                                ✅ Análisis Completado
+                                                {icon} Analisis Completado
                                             </div>
                                             <div style="font-size: 13px; color: #86efac; font-weight: 500;">
-                                                Se han generado {num_opportunities} ticket(s) automáticamente
+                                                {tickets_status}
                                             </div>
                                             <div style="font-size: 11px; color: #4ade80; margin-top: 6px;">
-                                                Los tickets están disponibles en la sección de "Oportunidades"
+                                                {subtitle}
                                             </div>
                                         </div>
                                         ''', unsafe_allow_html=True)
                                         
-                                        st.toast(
-                                            f"✅ Se detectaron {num_opportunities} oportunidades. Los tickets han sido creados automáticamente.",
-                                            icon="🤖"
-                                        )
+                                        if detected_opps:
+                                            toast_msg = f"Se han creado {len(detected_opps)} tickets automáticamente"
+                                        else:
+                                            toast_msg = f"Se detectaron {num_opportunities} oportunidades por IA"
+                                        
+                                        st.toast(toast_msg, icon="🤖")
                                         add_debug_event(
                                             f"IA detectó {num_opportunities} oportunidades para '{selected_audio}'",
                                             "success"

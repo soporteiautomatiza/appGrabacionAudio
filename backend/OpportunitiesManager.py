@@ -303,30 +303,37 @@ RESPONDE SOLO CON JSON (sin markdown, sin explicaciones):
 Si no hay oportunidades: {{"analisis_completo": true, "oportunidades": []}}"""
             
             # Llamar a Gemini
-            logger.info(f"🔄 Iniciando análisis con Gemini para: {audio_filename}")
-            model = genai.GenerativeModel(config.get("modelo_gemini", "gemini-1.5-flash"))
+            logger.info(f"Iniciando analisis con Gemini para: {audio_filename}")
+            logger.info(f"Modelo: {config.get('modelo_gemini', 'gemini-2.0-flash')}")
+            logger.info(f"Transcripción: {len(transcription_limited)} caracteres, Speakers: {speakers_list}")
+            
+            model = genai.GenerativeModel(config.get("modelo_gemini", "gemini-2.0-flash"))
             response = model.generate_content(prompt)
             response_text = response.text.strip()
             
-            logger.debug(f"Respuesta Gemini ({len(response_text)} chars): {response_text[:200]}")
+            logger.info(f"Respuesta Gemini recibida: {len(response_text)} caracteres")
+            logger.info(f"RESPUESTA COMPLETA:\n{response_text}")
             
             # Limpiar respuesta
             # Remover markdown code blocks
             if "```json" in response_text:
+                logger.info("Limpiando: encontrado ```json")
                 response_text = response_text.split("```json")[1].split("```")[0].strip()
             elif "```" in response_text:
+                logger.info("Limpiando: encontrado ```")
                 response_text = response_text.split("```")[1].split("```")[0].strip()
             
             # Remover caracteres de control
             response_text = response_text.strip()
+            logger.info(f"Texto limpio: {response_text[:200]}")
             
             # Parsear JSON
             try:
                 response_json = json.loads(response_text)
-                logger.debug(f"JSON parseado exitosamente")
+                logger.info(f"JSON parseado exitosamente: {response_json}")
             except json.JSONDecodeError as e:
-                logger.error(f"❌ Error parsing JSON: {str(e)}")
-                logger.debug(f"Response text: {response_text}")
+                logger.error(f"ERROR al parsear JSON: {str(e)[:100]}")
+                logger.error(f"Response text: {response_text[:300]}")
                 # Intentar limpiar y reparsear
                 try:
                     # Buscar el primer { y último }
@@ -334,27 +341,33 @@ Si no hay oportunidades: {{"analisis_completo": true, "oportunidades": []}}"""
                     end = response_text.rfind("}") + 1
                     if start >= 0 and end > start:
                         cleaned = response_text[start:end]
+                        logger.info(f"Intentando limpiar JSON desde {start} a {end}")
                         response_json = json.loads(cleaned)
-                        logger.info("✓ JSON recuperado tras limpieza")
+                        logger.info("JSON recuperado tras limpieza")
                     else:
-                        logger.error("No se encontró JSON válido")
+                        logger.error("No JSON encontrado en respuesta")
                         return 0, []
-                except:
-                    logger.error("No se pudo recuperar JSON")
+                except Exception as clean_err:
+                    logger.error(f"Error en cleanup: {str(clean_err)[:100]}")
                     return 0, []
             
             oportunidades_data = response_json.get("oportunidades", [])
-            logger.info(f"IA detectó {len(oportunidades_data)} oportunidades")
+            logger.info(f"IA detectó {len(oportunidades_data)} oportunidades: {oportunidades_data}")
             
             if not oportunidades_data:
-                logger.info(f"✓ Análisis completado: 0 oportunidades detectadas")
+                logger.info(f"Análisis completado: 0 oportunidades detectadas")
                 return 0, []
             
             # Obtener recording_id
             recording_id = self.get_recording_id(audio_filename)
+            
+            # Si no hay recording_id en BD, retornar las oportunidades detectadas al menos
+            # (aunque no se puedan guardar en BD)
             if not recording_id:
-                logger.warning(f"Recording ID not found para {audio_filename}")
-                return 0, []
+                logger.warning(f"Recording ID not found, cannot save to DB but IA detected {len(oportunidades_data)} opportunities")
+                # Retornar el número de oportunidades detectadas para mostrar feedback al usuario
+                # aunque no se guarden en BD
+                return len(oportunidades_data), []
             
             # Guardar cada oportunidad
             saved_opportunities = []
@@ -421,11 +434,17 @@ Si no hay oportunidades: {{"analisis_completo": true, "oportunidades": []}}"""
                     logger.error(f"Error guardando opp {idx}: {type(inner_e).__name__} - {str(inner_e)}")
             
             total = len(saved_opportunities)
-            logger.info(f"✅ ANÁLISIS COMPLETADO: {total} oportunidades guardadas de {len(oportunidades_data)} detectadas")
-            return total, saved_opportunities
+            total_detectadas = len(oportunidades_data)
+            logger.info(f"ANÁLISIS COMPLETADO: {total} guardadas / {total_detectadas} detectadas")
+            
+            # Retornar total detectadas (para mostrar feedback), y las guardadas (si existen)
+            return total_detectadas, saved_opportunities
         
         except Exception as e:
             logger.error(f"analyze_opportunities_with_ai error: {type(e).__name__} - {str(e)}")
+            import traceback
+            logger.error(traceback.format_exc())
+            return 0, []
             import traceback
             logger.error(traceback.format_exc())
             return 0, []
